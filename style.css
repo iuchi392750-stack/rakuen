@@ -23,9 +23,33 @@ body {
   overflow: hidden;
 }
 
+/* Clock */
+.clock-section {
+  background: #4f46e5;
+  color: #ffffff;
+  text-align: center;
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.clock-time {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.clock-date {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  opacity: 0.85;
+  letter-spacing: 0.03em;
+}
+
 /* Header */
 .header {
-  background: #4f46e5;
+  background: #3730a3;
   color: #ffffff;
   display: flex;
   align-items: center;
