@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>X トレンド分析 & 画像プロンプト生成</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="header-icon">𝕏</div>
+        <div class="header-text">
+          <h1>トレンド分析 & プロンプト生成</h1>
+          <p>X(Twitter)の人気イラストトレンドを分析し、画像生成AIプロンプトを自動生成</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- Section 1: Category Selection -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">📊</span>
+          <h2>カテゴリーを選択</h2>
+        </div>
+        <p class="section-desc">分析したいイラストジャンルを選んでください（複数選択可）</p>
+        <div class="categories" id="categories">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Section 2: Custom Keywords -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">✏️</span>
+          <h2>カスタムキーワード（任意）</h2>
+        </div>
+        <p class="section-desc">追加したいキーワードやテーマを自由に入力できます</p>
+        <div class="input-group">
+          <input
+            type="text"
+            id="custom-keywords"
+            class="keyword-input"
+            placeholder="例: 春、雨、メランコリー、ドラマチック..."
+            maxlength="200"
+          />
+          <span class="input-hint">最大200文字</span>
+        </div>
+      </section>
+
+      <!-- Analyze Button -->
+      <div class="action-area">
+        <button class="analyze-btn" id="analyze-btn">
+          <span class="btn-icon">🔍</span>
+          <span class="btn-text">トレンド分析 & プロンプト生成</span>
+        </button>
+        <p class="action-hint">Claude AI が X のトレンドを分析し、最適なプロンプトを生成します</p>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-area" id="loading-area" hidden>
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <div class="loading-steps">
+            <div class="loading-step active" id="step-1">
+              <span class="step-icon">📡</span>
+              <span>X トレンドデータを収集中...</span>
+            </div>
+            <div class="loading-step" id="step-2">
+              <span class="step-icon">🤖</span>
+              <span>Claude AI がトレンドを分析中...</span>
+            </div>
+            <div class="loading-step" id="step-3">
+              <span class="step-icon">✨</span>
+              <span>画像生成プロンプトを作成中...</span>
+            </div>
+          </div>
+          <div class="streaming-text" id="streaming-preview"></div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="results-area" id="results-area" hidden>
+        <!-- Trend Analysis -->
+        <section class="result-section">
+          <div class="result-section-header">
+            <span class="result-icon">📈</span>
+            <h2>トレンド分析結果</h2>
+          </div>
+
+          <div class="analysis-card">
+            <h3 class="card-subtitle">総合サマリー</h3>
+            <p class="summary-text" id="result-summary"></p>
+          </div>
+
+          <div class="analysis-grid">
+            <div class="analysis-item">
+              <h3 class="item-title">
+                <span>🎯</span> 人気の視覚的要素
+              </h3>
+              <ul class="tag-list" id="result-elements"></ul>
+            </div>
+            <div class="analysis-item">
+              <h3 class="item-title">
+                <span>🎨</span> カラートレンド
+              </h3>
+              <ul class="tag-list color-tags" id="result-colors"></ul>
+            </div>
+            <div class="analysis-item">
+              <h3 class="item-title">
+                <span>🖼️</span> 構図のポイント
+              </h3>
+              <ul class="tag-list tip-tags" id="result-composition"></ul>
+            </div>
+            <div class="analysis-item">
+              <h3 class="item-title">
+                <span>💡</span> 高エンゲージメントの要因
+              </h3>
+              <ul class="tag-list engagement-tags" id="result-engagement"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Generated Prompts -->
+        <section class="result-section">
+          <div class="result-section-header">
+            <span class="result-icon">✨</span>
+            <h2>生成された画像プロンプト</h2>
+            <span class="badge">Stable Diffusion / Midjourney 対応</span>
+          </div>
+
+          <div class="prompts-list" id="prompts-list">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <!-- Retry Button -->
+        <div class="retry-area">
+          <button class="retry-btn" id="retry-btn">
+            <span>🔄</span> 別のプロンプトを生成する
+          </button>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-area" id="error-area" hidden>
+        <div class="error-card">
+          <span class="error-icon">⚠️</span>
+          <h3>エラーが発生しました</h3>
+          <p id="error-message"></p>
+          <button class="retry-btn" id="error-retry-btn">もう一度試す</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>Powered by <strong>Claude Opus 4.6</strong> × <strong>Anthropic API</strong></p>
+      <p class="footer-note">※ トレンドデータはX APIのシミュレーションデータです</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
