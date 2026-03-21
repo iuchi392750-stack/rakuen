@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI小説メーカー</title>
+  <style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --primary-light: #ede9fe;
+  --text: #1e1b4b;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+  --bg: #f5f3ff;
+  --bg-white: #ffffff;
+  --border: #e5e7eb;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(79,70,229,.08);
+  --shadow-lg: 0 8px 32px rgba(79,70,229,.14);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --serif: 'Noto Serif JP', Georgia, 'Times New Roman', serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ===== Screen transitions ===== */
+.screen {
+  display: none;
+  min-height: 100vh;
+  animation: fadeIn 0.2s ease;
+}
+.screen.active { display: flex; flex-direction: column; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hidden { display: none !important; }
+
+/* ===== Navbar ===== */
+.navbar {
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+.navbar-brand {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  transition: background .15s, transform .1s, box-shadow .15s, color .15s;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  padding: 10px 22px;
+  font-size: .9rem;
+}
+.btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  padding: 9px 20px;
+  font-size: .9rem;
+}
+.btn-outline:hover:not(:disabled) { background: var(--primary-light); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: .875rem;
+}
+.btn-ghost:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+
+.btn-sm { padding: 6px 14px; font-size: .8rem; }
+.btn-lg { padding: 13px 28px; font-size: 1rem; font-weight: 600; }
+.btn-full { width: 100%; margin-top: 8px; }
+
+/* ===== Chapter nav arrows ===== */
+.chapter-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chapter-indicator {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 100px;
+  text-align: center;
+}
+.nav-arrow {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.nav-arrow:hover:not(:disabled) { background: var(--primary-light); color: var(--primary); }
+.nav-arrow:disabled { opacity: .3; cursor: not-allowed; }
+
+/* ===== Splash / APIキー画面 ===== */
+#screen-apikey {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.splash-bg {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+  z-index: -1;
+}
+.splash-card {
+  background: var(--bg-white);
+  border-radius: 20px;
+  padding: 40px 36px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.splash-icon { font-size: 3rem; margin-bottom: 12px; }
+.splash-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.splash-desc {
+  font-size: .9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* ===== Forms ===== */
+.form-group { margin-bottom: 18px; }
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.form-label {
+  display: block;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.required { color: #ef4444; margin-left: 2px; }
+.optional {
+  font-size: .75rem;
+  font-weight: 400;
+  color: var(--text-light);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--sans);
+  font-size: .9rem;
+  color: var(--text);
+  background: var(--bg-white);
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+}
+.form-textarea { resize: vertical; line-height: 1.6; }
+.form-hint {
+  font-size: .78rem;
+  color: var(--text-light);
+  margin-top: 6px;
+}
+
+/* ===== Page content / Cards ===== */
+.page-content {
+  flex: 1;
+  padding: 24px 20px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+.card {
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+/* ===== Loading states ===== */
+.loading-card {
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  padding: 60px 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--primary-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+.loading-text {
+  color: var(--text-muted);
+  font-size: .95rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Inline loading dots */
+.inline-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0;
+  color: var(--text-muted);
+  font-size: .9rem;
+}
+.loading-dots {
+  display: flex;
+  gap: 5px;
+}
+.loading-dots span {
+  width: 7px; height: 7px;
+  background: var(--primary);
+  border-radius: 50%;
+  animation: bounce 1s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: .15s; }
+.loading-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(.6); opacity: .5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.loading-label { color: var(--text-muted); }
+
+/* ===== Plot screen ===== */
+.plot-header-card { text-align: center; padding: 32px 24px; }
+.novel-main-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.plot-label {
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.chapter-item {
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  border-left: 4px solid var(--primary);
+}
+.chapter-item-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.chapter-badge {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 2px 9px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.chapter-item-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.chapter-item-summary {
+  font-size: .85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ===== Writing layout ===== */
+.writing-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+#screen-writing {
+  height: 100vh;
+}
+
+/* Sidebar */
+.chapter-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg-white);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 12px;
+}
+.sidebar-title {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.sidebar-chapter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .12s;
+  margin-bottom: 2px;
+}
+.sidebar-chapter-item:hover { background: var(--bg); }
+.sidebar-chapter-item.active { background: var(--primary-light); }
+.sidebar-chapter-item.active .sidebar-ch-num { color: var(--primary); }
+.sidebar-ch-status {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.sidebar-ch-status.written { background: #10b981; }
+.sidebar-ch-status.current { background: var(--primary); }
+.sidebar-ch-num {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+.sidebar-ch-title {
+  font-size: .8rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Writing main area */
+.writing-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chapter-header-area {
+  margin-bottom: 24px;
+}
+.chapter-label {
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 3px 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.chapter-h {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.chapter-summary-text {
+  font-size: .85rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 560px;
+}
+
+/* Novel text area */
+.novel-area {
+  flex: 1;
+  min-height: 200px;
+}
+.novel-body {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 2;
+  color: #2d2a4a;
+  max-width: 620px;
+}
+.novel-body p {
+  margin-bottom: 1.4em;
+  text-indent: 1em;
+}
+.novel-body p:first-child { text-indent: 0; }
+
+/* Chapter actions */
+.chapter-actions {
+  padding: 24px 0 16px;
+}
+.post-write-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ===== Full novel view ===== */
+.full-novel-page {
+  max-width: 720px;
+  padding: 32px 20px;
+}
+.full-novel-text {
+  max-width: 660px;
+  margin: 0 auto;
+}
+.full-chapter {
+  margin-bottom: 56px;
+}
+.full-chapter-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+.full-chapter-body {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 2;
+  color: #2d2a4a;
+}
+.full-chapter-body p {
+  margin-bottom: 1.4em;
+  text-indent: 1em;
+}
+.full-chapter-body p:first-child { text-indent: 0; }
+.unwritten-note {
+  color: var(--text-light);
+  font-style: italic;
+  font-size: .9rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .chapter-sidebar { display: none; }
+  .writing-main { padding: 20px 16px; }
+  .form-row-2 { grid-template-columns: 1fr; }
+  .splash-card { padding: 32px 20px; }
+  .page-content { padding: 16px; }
+  .chapter-indicator { min-width: 70px; font-size: .78rem; }
+  .navbar-brand { max-width: 120px; font-size: .85rem; }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- ① APIキー設定 -->
+  <div id="screen-apikey" class="screen active">
+    <div class="splash-bg"></div>
+    <div class="splash-card">
+      <div class="splash-icon">📖</div>
+      <h1 class="splash-title">AI小説メーカー</h1>
+      <p class="splash-desc">ジャンルとあらすじを入力するだけで、AIが本格的な小説を自動執筆します</p>
+      <div class="form-group">
+        <label class="form-label">Anthropic APIキー</label>
+        <input type="password" id="api-key-input" class="form-input" placeholder="sk-ant-..." autocomplete="off" />
+        <p class="form-hint">APIキーはお使いのブラウザ (localStorage) にのみ保存されます</p>
+      </div>
+      <button class="btn btn-primary btn-lg" id="save-api-key">はじめる</button>
+    </div>
+  </div>
+
+  <!-- ② 設定画面 -->
+  <div id="screen-setup" class="screen">
+    <nav class="navbar">
+      <div class="navbar-brand">📖 AI小説メーカー</div>
+      <button class="btn btn-ghost btn-sm" id="change-api-key">APIキー変更</button>
+    </nav>
+    <div class="page-content">
+      <div class="card">
+        <h2 class="card-title">小説の設定</h2>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">ジャンル <span class="required">*</span></label>
+            <select id="genre-select" class="form-select">
+              <option value="">選択してください</option>
+              <option value="ファンタジー">ファンタジー</option>
+              <option value="SF">SF</option>
+              <option value="ミステリー">ミステリー</option>
+              <option value="ロマンス">ロマンス</option>
+              <option value="ホラー">ホラー</option>
+              <option value="歴史小説">歴史小説</option>
+              <option value="冒険">冒険</option>
+              <option value="青春">青春</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">章数</label>
+            <select id="chapter-count" class="form-select">
+              <option value="3">3章</option>
+              <option value="5" selected>5章</option>
+              <option value="8">8章</option>
+              <option value="10">10章</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">舞台・世界観 <span class="optional">任意</span></label>
+          <textarea id="setting-input" class="form-textarea" rows="2"
+            placeholder="例：魔法が使える中世ヨーロッパ風の王国。剣と魔法の時代..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">登場人物 <span class="optional">任意</span></label>
+          <textarea id="characters-input" class="form-textarea" rows="2"
+            placeholder="例：主人公・アレン（18歳、魔法使いの卵）、ヒロイン・リア（16歳、王女）..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">あらすじ・展開 <span class="required">*</span></label>
+          <textarea id="overview-input" class="form-textarea" rows="4"
+            placeholder="例：魔王の復活を予言された少年が、仲間たちと共に旅に出る。様々な試練を乗り越え成長し、最終決戦に挑む..."></textarea>
+        </div>
+        <button class="btn btn-primary btn-lg btn-full" id="generate-plot-btn">
+          プロットを生成する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ プロット確認画面 -->
+  <div id="screen-plot" class="screen">
+    <nav class="navbar">
+      <button class="btn btn-ghost btn-sm" id="back-to-setup">← 設定に戻る</button>
+      <div class="navbar-brand">プロット確認</div>
+      <div></div>
+    </nav>
+    <div class="page-content">
+      <div id="plot-loading" class="loading-card">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">プロットを生成中...</p>
+      </div>
+      <div id="plot-content" class="hidden">
+        <div class="card plot-header-card">
+          <h2 id="plot-novel-title" class="novel-main-title"></h2>
+          <p class="plot-label">章構成</p>
+        </div>
+        <div id="chapters-list"></div>
+        <button class="btn btn-primary btn-lg btn-full" id="start-writing-btn">
+          執筆を開始する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 執筆画面 -->
+  <div id="screen-writing" class="screen">
+    <nav class="navbar writing-navbar">
+      <button class="btn btn-ghost btn-sm" id="back-to-plot">← プロット</button>
+      <div class="chapter-nav-group">
+        <button class="nav-arrow" id="prev-chapter" disabled title="前の章">‹</button>
+        <span id="chapter-indicator" class="chapter-indicator"></span>
+        <button class="nav-arrow" id="next-chapter" title="次の章">›</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="view-all-btn">全文 →</button>
+    </nav>
+    <div class="writing-layout">
+      <aside class="chapter-sidebar">
+        <h3 class="sidebar-title">章一覧</h3>
+        <div id="sidebar-chapters"></div>
+      </aside>
+      <main class="writing-main">
+        <div class="chapter-header-area">
+          <span class="chapter-label" id="w-chapter-num"></span>
+          <h2 class="chapter-h" id="w-chapter-title"></h2>
+          <p class="chapter-summary-text" id="w-chapter-summary"></p>
+        </div>
+        <div class="novel-area">
+          <div id="novel-loading" class="inline-loading hidden">
+            <span class="loading-dots"><span></span><span></span><span></span></span>
+            <span class="loading-label">執筆中...</span>
+          </div>
+          <div id="novel-text" class="novel-body"></div>
+        </div>
+        <div class="chapter-actions">
+          <button class="btn btn-primary btn-lg" id="write-btn">この章を執筆する</button>
+          <div id="post-write-actions" class="hidden post-write-row">
+            <button class="btn btn-outline btn-lg" id="write-next-btn">次の章へ →</button>
+            <button class="btn btn-ghost btn-sm" id="rewrite-btn">書き直す</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ⑤ 全文表示 -->
+  <div id="screen-full" class="screen">
+    <nav class="navbar">
+      <button class="btn btn-ghost btn-sm" id="back-from-full">← 執筆に戻る</button>
+      <div class="navbar-brand" id="full-novel-titlebar"></div>
+      <button class="btn btn-outline btn-sm" id="export-btn">テキスト保存</button>
+    </nav>
+    <div class="page-content full-novel-page">
+      <div id="full-novel-content" class="full-novel-text"></div>
+    </div>
+  </div>
+
+  <script>
+'use strict';
+
+// ===== State =====
+const state = {
+  apiKey: localStorage.getItem('novel_api_key') || '',
+  novel: {
+    genre: '',
+    setting: '',
+    characters: '',
+    overview: '',
+    chapterCount: 5,
+    title: '',
+    plot: [],      // [{ number, title, summary }]
+    chapters: [],  // [{ number, title, summary, content, written }]
+  },
+  currentIndex: 0,
+  isGenerating: false,
+};
+
+// ===== Screen management =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ===== Claude API: streaming =====
+async function streamClaude(messages, system, onChunk) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': state.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-6',
+      max_tokens: 4096,
+      stream: true,
+      system,
+      messages,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `APIエラー (${res.status})`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') continue;
+      try {
+        const ev = JSON.parse(raw);
+        if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+          onChunk(ev.delta.text);
+        }
+      } catch (_) { /* ignore parse errors */ }
+    }
+  }
+}
+
+// ===== Claude API: non-streaming =====
+async function callClaude(messages, system) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': state.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-6',
+      max_tokens: 2048,
+      system,
+      messages,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `APIエラー (${res.status})`);
+  }
+
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+// ===== Plot generation =====
+async function generatePlot() {
+  const { genre, setting, characters, overview, chapterCount } = state.novel;
+
+  const system = `あなたは優れた日本語小説家です。ユーザーの入力を元に、魅力的な小説のプロットを作成してください。
+以下のJSON形式のみで応答してください。他のテキストや説明は不要です。
+
+{
+  "title": "小説のタイトル",
+  "chapters": [
+    { "number": 1, "title": "章タイトル", "summary": "この章のあらすじ（80〜120文字）" }
+  ]
+}`;
+
+  const parts = [`ジャンル: ${genre}`];
+  if (setting) parts.push(`舞台・世界観: ${setting}`);
+  if (characters) parts.push(`登場人物: ${characters}`);
+  parts.push(`あらすじ・展開: ${overview}`);
+  parts.push(`章数: ${chapterCount}章`);
+
+  const userMsg = `以下の設定で${chapterCount}章構成の小説プロットを作成してください。\n\n${parts.join('\n')}`;
+
+  const text = await callClaude([{ role: 'user', content: userMsg }], system);
+
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('プロット生成に失敗しました（JSONが見つかりません）');
+
+  const data = JSON.parse(match[0]);
+  state.novel.title = data.title;
+  state.novel.plot = data.chapters;
+  state.novel.chapters = data.chapters.map(ch => ({
+    number: ch.number,
+    title: ch.title,
+    summary: ch.summary,
+    content: '',
+    written: false,
+  }));
+
+  return data;
+}
+
+// ===== Chapter writing =====
+async function writeChapter(idx) {
+  const ch = state.novel.chapters[idx];
+  const { genre, setting, characters, overview, title, plot } = state.novel;
+
+  const system = `あなたは日本語で小説を執筆する優れた作家です。
+情景描写・心理描写・セリフを巧みに織り交ぜ、読者を引き込む文章を書いてください。
+各章は2000〜3000文字程度を目安に執筆してください。
+章番号や章タイトルの見出しは書かずに、本文のみを書いてください。`;
+
+  const plotLines = plot.map(c => `第${c.number}章「${c.title}」: ${c.summary}`).join('\n');
+
+  const prevSummaries = state.novel.chapters
+    .filter((c, i) => i < idx && c.written)
+    .map(c => `第${c.number}章「${c.title}」: ${c.summary}`)
+    .join('\n');
+
+  const lines = [`小説「${title}」の第${ch.number}章を執筆してください。`, ''];
+  lines.push('【作品情報】');
+  lines.push(`ジャンル: ${genre}`);
+  if (setting) lines.push(`舞台・世界観: ${setting}`);
+  if (characters) lines.push(`登場人物: ${characters}`);
+  lines.push(`全体のあらすじ: ${overview}`, '');
+  lines.push('【プロット全体】', plotLines);
+  if (prevSummaries) {
+    lines.push('', '【これまでの各章のあらすじ】', prevSummaries);
+  }
+  lines.push('', '【執筆指示】');
+  lines.push(`第${ch.number}章「${ch.title}」を執筆してください。`);
+  lines.push(`この章のあらすじ: ${ch.summary}`);
+
+  let content = '';
+  const novelTextEl = document.getElementById('novel-text');
+
+  await streamClaude(
+    [{ role: 'user', content: lines.join('\n') }],
+    system,
+    chunk => {
+      content += chunk;
+      novelTextEl.innerHTML = formatNovelText(content);
+    }
+  );
+
+  state.novel.chapters[idx].content = content;
+  state.novel.chapters[idx].written = true;
+}
+
+// ===== Format novel text as HTML paragraphs =====
+function formatNovelText(text) {
+  return text
+    .split(/\n\n+/)
+    .map(p => p.trim().replace(/\n/g, '<br>'))
+    .filter(Boolean)
+    .map(p => `<p>${p}</p>`)
+    .join('');
+}
+
+// ===== Update writing screen =====
+function updateWritingScreen() {
+  const chapters = state.novel.chapters;
+  const idx = state.currentIndex;
+  const ch = chapters[idx];
+  const total = chapters.length;
+
+  // Navbar
+  document.getElementById('chapter-indicator').textContent = `第${ch.number}章 / 全${total}章`;
+  document.getElementById('prev-chapter').disabled = idx === 0;
+  document.getElementById('next-chapter').disabled = idx === total - 1;
+
+  // Chapter header
+  document.getElementById('w-chapter-num').textContent = `第${ch.number}章`;
+  document.getElementById('w-chapter-title').textContent = ch.title;
+  document.getElementById('w-chapter-summary').textContent = ch.summary;
+
+  // Content area
+  const novelText = document.getElementById('novel-text');
+  const novelLoading = document.getElementById('novel-loading');
+  const writeBtn = document.getElementById('write-btn');
+  const postActions = document.getElementById('post-write-actions');
+  const writeNextBtn = document.getElementById('write-next-btn');
+
+  novelLoading.classList.add('hidden');
+
+  if (ch.written) {
+    novelText.innerHTML = formatNovelText(ch.content);
+    writeBtn.classList.add('hidden');
+    postActions.classList.remove('hidden');
+    writeNextBtn.style.display = (idx < total - 1) ? 'inline-flex' : 'none';
+  } else {
+    novelText.innerHTML = '';
+    writeBtn.classList.remove('hidden');
+    postActions.classList.add('hidden');
+  }
+
+  updateSidebar();
+}
+
+// ===== Update sidebar =====
+function updateSidebar() {
+  const sidebar = document.getElementById('sidebar-chapters');
+  const chapters = state.novel.chapters;
+  const idx = state.currentIndex;
+
+  sidebar.innerHTML = chapters.map((ch, i) => {
+    const statusClass = ch.written ? 'written' : (i === idx ? 'current' : '');
+    const activeClass = i === idx ? 'active' : '';
+    return `
+      <div class="sidebar-chapter-item ${activeClass}" data-idx="${i}">
+        <span class="sidebar-ch-status ${statusClass}"></span>
+        <span class="sidebar-ch-num">第${ch.number}章</span>
+        <span class="sidebar-ch-title">${ch.title}</span>
+      </div>
+    `;
+  }).join('');
+
+  sidebar.querySelectorAll('.sidebar-chapter-item').forEach(el => {
+    el.addEventListener('click', () => {
+      if (state.isGenerating) return;
+      state.currentIndex = parseInt(el.dataset.idx);
+      updateWritingScreen();
+    });
+  });
+}
+
+// ===== Show full novel =====
+function showFullNovel() {
+  document.getElementById('full-novel-titlebar').textContent = state.novel.title;
+
+  const container = document.getElementById('full-novel-content');
+  container.innerHTML = state.novel.chapters.map(ch => {
+    const body = ch.written
+      ? `<div class="full-chapter-body">${formatNovelText(ch.content)}</div>`
+      : `<p class="unwritten-note">（未執筆）</p>`;
+    return `
+      <div class="full-chapter">
+        <h2 class="full-chapter-title">第${ch.number}章　${ch.title}</h2>
+        ${body}
+      </div>
+    `;
+  }).join('');
+
+  showScreen('full');
+}
+
+// ===== Export as text file =====
+function exportNovel() {
+  const divider = '\n' + '─'.repeat(40) + '\n\n';
+  const chapters = state.novel.chapters.map(ch => {
+    const heading = `第${ch.number}章　${ch.title}`;
+    const body = ch.written ? ch.content : '（未執筆）';
+    return `${heading}\n\n${body}`;
+  }).join(divider);
+
+  const full = `${state.novel.title}\n\n${'═'.repeat(40)}\n\n${chapters}`;
+  const blob = new Blob([full], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${state.novel.title}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== Event listeners =====
+
+// --- APIキー画面 ---
+document.getElementById('save-api-key').addEventListener('click', () => {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) { alert('APIキーを入力してください。'); return; }
+  state.apiKey = key;
+  localStorage.setItem('novel_api_key', key);
+  showScreen('setup');
+});
+
+document.getElementById('api-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('save-api-key').click();
+});
+
+// --- 設定画面 ---
+document.getElementById('change-api-key').addEventListener('click', () => {
+  showScreen('apikey');
+});
+
+document.getElementById('generate-plot-btn').addEventListener('click', async () => {
+  const genre = document.getElementById('genre-select').value;
+  const overview = document.getElementById('overview-input').value.trim();
+
+  if (!genre) { alert('ジャンルを選択してください。'); return; }
+  if (!overview) { alert('あらすじ・展開を入力してください。'); return; }
+
+  state.novel.genre = genre;
+  state.novel.setting = document.getElementById('setting-input').value.trim();
+  state.novel.characters = document.getElementById('characters-input').value.trim();
+  state.novel.overview = overview;
+  state.novel.chapterCount = parseInt(document.getElementById('chapter-count').value);
+
+  showScreen('plot');
+  document.getElementById('plot-loading').classList.remove('hidden');
+  document.getElementById('plot-content').classList.add('hidden');
+
+  try {
+    const plotData = await generatePlot();
+
+    document.getElementById('plot-novel-title').textContent = plotData.title;
+
+    const list = document.getElementById('chapters-list');
+    list.innerHTML = plotData.chapters.map(ch => `
+      <div class="chapter-item">
+        <div class="chapter-item-header">
+          <span class="chapter-badge">第${ch.number}章</span>
+          <span class="chapter-item-title">${ch.title}</span>
+        </div>
+        <p class="chapter-item-summary">${ch.summary}</p>
+      </div>
+    `).join('');
+
+    document.getElementById('plot-loading').classList.add('hidden');
+    document.getElementById('plot-content').classList.remove('hidden');
+  } catch (e) {
+    alert('エラー: ' + e.message);
+    showScreen('setup');
+  }
+});
+
+// --- プロット確認画面 ---
+document.getElementById('back-to-setup').addEventListener('click', () => {
+  showScreen('setup');
+});
+
+document.getElementById('start-writing-btn').addEventListener('click', () => {
+  state.currentIndex = 0;
+  showScreen('writing');
+  updateWritingScreen();
+});
+
+// --- 執筆画面: ナビ ---
+document.getElementById('back-to-plot').addEventListener('click', () => {
+  if (state.isGenerating) return;
+  showScreen('plot');
+  document.getElementById('plot-loading').classList.add('hidden');
+  document.getElementById('plot-content').classList.remove('hidden');
+});
+
+document.getElementById('prev-chapter').addEventListener('click', () => {
+  if (state.isGenerating || state.currentIndex <= 0) return;
+  state.currentIndex--;
+  updateWritingScreen();
+});
+
+document.getElementById('next-chapter').addEventListener('click', () => {
+  if (state.isGenerating) return;
+  const total = state.novel.chapters.length;
+  if (state.currentIndex >= total - 1) return;
+  state.currentIndex++;
+  updateWritingScreen();
+});
+
+document.getElementById('view-all-btn').addEventListener('click', () => {
+  if (state.isGenerating) return;
+  showFullNovel();
+});
+
+// --- 執筆画面: 執筆ボタン ---
+document.getElementById('write-btn').addEventListener('click', async () => {
+  if (state.isGenerating) return;
+  state.isGenerating = true;
+
+  const writeBtn = document.getElementById('write-btn');
+  const loading = document.getElementById('novel-loading');
+  const novelText = document.getElementById('novel-text');
+
+  writeBtn.classList.add('hidden');
+  loading.classList.remove('hidden');
+  novelText.innerHTML = '';
+
+  try {
+    await writeChapter(state.currentIndex);
+    loading.classList.add('hidden');
+    updateWritingScreen();
+  } catch (e) {
+    loading.classList.add('hidden');
+    alert('エラー: ' + e.message);
+    writeBtn.classList.remove('hidden');
+  }
+
+  state.isGenerating = false;
+});
+
+// --- 次の章へ ---
+document.getElementById('write-next-btn').addEventListener('click', () => {
+  const total = state.novel.chapters.length;
+  if (state.currentIndex < total - 1) {
+    state.currentIndex++;
+    updateWritingScreen();
+  }
+});
+
+// --- 書き直す ---
+document.getElementById('rewrite-btn').addEventListener('click', () => {
+  if (state.isGenerating) return;
+  const ch = state.novel.chapters[state.currentIndex];
+  if (!confirm(`第${ch.number}章「${ch.title}」を書き直しますか？`)) return;
+  ch.written = false;
+  ch.content = '';
+  updateWritingScreen();
+});
+
+// --- 全文表示 ---
+document.getElementById('back-from-full').addEventListener('click', () => {
+  showScreen('writing');
+  updateWritingScreen();
+});
+
+document.getElementById('export-btn').addEventListener('click', exportNovel);
+
+// ===== Initialize =====
+if (state.apiKey) {
+  showScreen('setup');
+} else {
+  showScreen('apikey');
+}
+
+</script>
+</body>
+</html>

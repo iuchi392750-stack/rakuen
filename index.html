@@ -3,32 +3,159 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>楽園カレンダー</title>
+  <title>AI小説メーカー</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <button class="nav-btn" id="prev-btn" aria-label="前の月">&#8249;</button>
-      <h1 class="month-title" id="month-title"></h1>
-      <button class="nav-btn" id="next-btn" aria-label="次の月">&#8250;</button>
-    </header>
 
-    <div class="weekdays">
-      <span>日</span>
-      <span>月</span>
-      <span>火</span>
-      <span>水</span>
-      <span>木</span>
-      <span>金</span>
-      <span>土</span>
+  <!-- ① APIキー設定 -->
+  <div id="screen-apikey" class="screen active">
+    <div class="splash-bg"></div>
+    <div class="splash-card">
+      <div class="splash-icon">📖</div>
+      <h1 class="splash-title">AI小説メーカー</h1>
+      <p class="splash-desc">ジャンルとあらすじを入力するだけで、AIが本格的な小説を自動執筆します</p>
+      <div class="form-group">
+        <label class="form-label">Anthropic APIキー</label>
+        <input type="password" id="api-key-input" class="form-input" placeholder="sk-ant-..." autocomplete="off" />
+        <p class="form-hint">APIキーはお使いのブラウザ (localStorage) にのみ保存されます</p>
+      </div>
+      <button class="btn btn-primary btn-lg" id="save-api-key">はじめる</button>
     </div>
+  </div>
 
-    <div class="calendar-grid" id="calendar-grid"></div>
+  <!-- ② 設定画面 -->
+  <div id="screen-setup" class="screen">
+    <nav class="navbar">
+      <div class="navbar-brand">📖 AI小説メーカー</div>
+      <button class="btn btn-ghost btn-sm" id="change-api-key">APIキー変更</button>
+    </nav>
+    <div class="page-content">
+      <div class="card">
+        <h2 class="card-title">小説の設定</h2>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">ジャンル <span class="required">*</span></label>
+            <select id="genre-select" class="form-select">
+              <option value="">選択してください</option>
+              <option value="ファンタジー">ファンタジー</option>
+              <option value="SF">SF</option>
+              <option value="ミステリー">ミステリー</option>
+              <option value="ロマンス">ロマンス</option>
+              <option value="ホラー">ホラー</option>
+              <option value="歴史小説">歴史小説</option>
+              <option value="冒険">冒険</option>
+              <option value="青春">青春</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">章数</label>
+            <select id="chapter-count" class="form-select">
+              <option value="3">3章</option>
+              <option value="5" selected>5章</option>
+              <option value="8">8章</option>
+              <option value="10">10章</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">舞台・世界観 <span class="optional">任意</span></label>
+          <textarea id="setting-input" class="form-textarea" rows="2"
+            placeholder="例：魔法が使える中世ヨーロッパ風の王国。剣と魔法の時代..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">登場人物 <span class="optional">任意</span></label>
+          <textarea id="characters-input" class="form-textarea" rows="2"
+            placeholder="例：主人公・アレン（18歳、魔法使いの卵）、ヒロイン・リア（16歳、王女）..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">あらすじ・展開 <span class="required">*</span></label>
+          <textarea id="overview-input" class="form-textarea" rows="4"
+            placeholder="例：魔王の復活を予言された少年が、仲間たちと共に旅に出る。様々な試練を乗り越え成長し、最終決戦に挑む..."></textarea>
+        </div>
+        <button class="btn btn-primary btn-lg btn-full" id="generate-plot-btn">
+          プロットを生成する
+        </button>
+      </div>
+    </div>
+  </div>
 
-    <footer class="footer">
-      <button class="today-btn" id="today-btn">今日</button>
-    </footer>
+  <!-- ③ プロット確認画面 -->
+  <div id="screen-plot" class="screen">
+    <nav class="navbar">
+      <button class="btn btn-ghost btn-sm" id="back-to-setup">← 設定に戻る</button>
+      <div class="navbar-brand">プロット確認</div>
+      <div></div>
+    </nav>
+    <div class="page-content">
+      <div id="plot-loading" class="loading-card">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">プロットを生成中...</p>
+      </div>
+      <div id="plot-content" class="hidden">
+        <div class="card plot-header-card">
+          <h2 id="plot-novel-title" class="novel-main-title"></h2>
+          <p class="plot-label">章構成</p>
+        </div>
+        <div id="chapters-list"></div>
+        <button class="btn btn-primary btn-lg btn-full" id="start-writing-btn">
+          執筆を開始する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 執筆画面 -->
+  <div id="screen-writing" class="screen">
+    <nav class="navbar writing-navbar">
+      <button class="btn btn-ghost btn-sm" id="back-to-plot">← プロット</button>
+      <div class="chapter-nav-group">
+        <button class="nav-arrow" id="prev-chapter" disabled title="前の章">‹</button>
+        <span id="chapter-indicator" class="chapter-indicator"></span>
+        <button class="nav-arrow" id="next-chapter" title="次の章">›</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="view-all-btn">全文 →</button>
+    </nav>
+    <div class="writing-layout">
+      <aside class="chapter-sidebar">
+        <h3 class="sidebar-title">章一覧</h3>
+        <div id="sidebar-chapters"></div>
+      </aside>
+      <main class="writing-main">
+        <div class="chapter-header-area">
+          <span class="chapter-label" id="w-chapter-num"></span>
+          <h2 class="chapter-h" id="w-chapter-title"></h2>
+          <p class="chapter-summary-text" id="w-chapter-summary"></p>
+        </div>
+        <div class="novel-area">
+          <div id="novel-loading" class="inline-loading hidden">
+            <span class="loading-dots"><span></span><span></span><span></span></span>
+            <span class="loading-label">執筆中...</span>
+          </div>
+          <div id="novel-text" class="novel-body"></div>
+        </div>
+        <div class="chapter-actions">
+          <button class="btn btn-primary btn-lg" id="write-btn">この章を執筆する</button>
+          <div id="post-write-actions" class="hidden post-write-row">
+            <button class="btn btn-outline btn-lg" id="write-next-btn">次の章へ →</button>
+            <button class="btn btn-ghost btn-sm" id="rewrite-btn">書き直す</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ⑤ 全文表示 -->
+  <div id="screen-full" class="screen">
+    <nav class="navbar">
+      <button class="btn btn-ghost btn-sm" id="back-from-full">← 執筆に戻る</button>
+      <div class="navbar-brand" id="full-novel-titlebar"></div>
+      <button class="btn btn-outline btn-sm" id="export-btn">テキスト保存</button>
+    </nav>
+    <div class="page-content full-novel-page">
+      <div id="full-novel-content" class="full-novel-text"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>
