@@ -406,13 +406,24 @@ def create_fog(cfg: dict):
     bg.inputs["Color"].default_value    = (0.25, 0.22, 0.30, 1.0)
     bg.inputs["Strength"].default_value = 0.8
 
-    vol = wn.new("ShaderNodeVolumePrincipaled")
-    vol.inputs["Density"].default_value    = density
-    vol.inputs["Anisotropy"].default_value = 0.2
+    # ボリュームノード名はBlenderバージョンによって異なる
+    vol = None
+    for node_type in ("ShaderNodeVolumePrincipled", "ShaderNodeVolumePrincipaled", "ShaderNodeVolumeScatter"):
+        try:
+            vol = wn.new(node_type)
+            break
+        except RuntimeError:
+            continue
 
     out = wn.new("ShaderNodeOutputWorld")
-    world.node_tree.links.new(bg.outputs["Background"],  out.inputs["Surface"])
-    world.node_tree.links.new(vol.outputs["Volume"],     out.inputs["Volume"])
+    world.node_tree.links.new(bg.outputs["Background"], out.inputs["Surface"])
+    if vol is not None:
+        try:
+            vol.inputs["Density"].default_value    = density
+            vol.inputs["Anisotropy"].default_value = 0.2
+        except KeyError:
+            pass
+        world.node_tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
 
 
 # -----------------------------------------------------------------------
