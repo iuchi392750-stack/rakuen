@@ -441,50 +441,55 @@ def create_fog(cfg: dict):
 
 
 # -----------------------------------------------------------------------
-# カメラ
+# カメラ（4段階シネマティック降下）
 # -----------------------------------------------------------------------
 def create_camera(cfg: dict) -> bpy.types.Object:
-    cam_cfg = cfg["camera"]
-    total   = cfg["animation"]["total_frames"]
+    """
+    カメラパス設計：
+    F1   : 上空から街全体を見下ろす（俯瞰）
+    F90  : 斜め降下しながら通りが見える（車・男・少女が全員見える）
+    F180 : 男が少女に近づく瞬間を横から捉える
+    F250 : 衝突・転倒・花が落ちるシーンを寄りで捉える
+    F360 : 倒れた少女・踏まれた花・去る男の後ろ姿
+    """
+    total = cfg["animation"]["total_frames"]
 
-    bpy.ops.object.camera_add(location=cam_cfg["start_location"])
+    bpy.ops.object.camera_add(location=(0, -3, 38))
     cam = bpy.context.active_object
     cam.name = "MainCamera"
-
     bpy.context.scene.camera = cam
+    cam.data.lens = 28
+    try:
+        cam.data.dof.use_dof = True
+        cam.data.dof.aperture_fstop = 5.6
+    except Exception:
+        pass
 
-    cam.data.lens = 35
-    cam.data.dof.use_dof = True
-    cam.data.dof.aperture_fstop = 4.0
+    def kf(loc, rot_deg, frame):
+        cam.location = loc
+        cam.rotation_euler = tuple(math.radians(r) for r in rot_deg)
+        cam.keyframe_insert("location",       frame=frame)
+        cam.keyframe_insert("rotation_euler", frame=frame)
 
-    def deg2rad3(d):
-        return tuple(math.radians(x) for x in d)
+    # F1: 真上から街を見下ろす
+    kf((0.0,  -3.0, 38.0), (8,  0, 0),   1)
 
-    # キーフレーム: 開始
-    cam.location = cam_cfg["start_location"]
-    cam.rotation_euler = deg2rad3(cam_cfg["start_rotation_euler_deg"])
-    cam.keyframe_insert("location",       frame=1)
-    cam.keyframe_insert("rotation_euler", frame=1)
+    # F90: 斜め降下・通り全体が見える（男が左から歩いてくるのが見える）
+    kf((-4.0, -10.0, 18.0), (48, 0, 0),  90)
 
-    # 中間（下降中）
-    mid_f = total // 2
-    cam.location = cam_cfg["mid_location"]
-    cam.rotation_euler = deg2rad3(cam_cfg["mid_rotation_euler_deg"])
-    cam.keyframe_insert("location",       frame=mid_f)
-    cam.keyframe_insert("rotation_euler", frame=mid_f)
+    # F180: 男が少女に近づく（やや横からのアングル）
+    kf((-2.0, -7.0,  8.0),  (58, 0, 5), 180)
 
-    # 終了（少女の近く）
-    cam.location = cam_cfg["end_location"]
-    cam.rotation_euler = deg2rad3(cam_cfg["end_rotation_euler_deg"])
-    cam.keyframe_insert("location",       frame=total)
-    cam.keyframe_insert("rotation_euler", frame=total)
+    # F250: 衝突・転倒シーン（低いアングル、少女と男の両方が見える）
+    kf((1.0,  -5.0,  4.0),  (65, 0, 8), 250)
 
-    # イージング：BEZIER補間（Blender 5.x対応）
-    action = cam.animation_data.action if cam.animation_data else None
-    if action:
-        fcurves = getattr(action, "fcurves", None) or getattr(action, "layers", None)
+    # F360: 倒れた少女・花・去る男（最終ショット）
+    kf((2.5,  -4.0,  2.5),  (70, 0, 12), 360)
+
+    # BEZIER補間
+    if cam.animation_data and cam.animation_data.action:
         try:
-            for fc in action.fcurves:
+            for fc in cam.animation_data.action.fcurves:
                 for kp in fc.keyframe_points:
                     kp.interpolation = "BEZIER"
                     kp.handle_left_type  = "AUTO_CLAMPED"
