@@ -380,20 +380,20 @@ def create_lights(cfg: dict):
     light_mat  = make_material("LampMat",  (1.0, 0.9, 0.6), roughness=0.1,
                                emission=(1.0, 0.9, 0.6), emission_strength=5.0)
     for i, lx in enumerate([-8, 0, 8]):
-        # ポール
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.08, depth=6.0, location=(lx, 5.5, 3.0))
+        # ポール（歩道脇・カメラの邪魔にならない位置）
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.08, depth=6.0, location=(lx, 7.0, 3.0))
         pole = bpy.context.active_object
         pole.name = f"LampPole_{i}"
         pole.data.materials.append(pole_mat)
 
         # ランプヘッド
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.3, location=(lx, 5.5, 6.1), segments=8, ring_count=6)
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.3, location=(lx, 7.0, 6.1), segments=8, ring_count=6)
         head = bpy.context.active_object
         head.name = f"LampHead_{i}"
         head.data.materials.append(light_mat)
 
         # ポイントライト
-        bpy.ops.object.light_add(type="POINT", location=(lx, 5.5, 6.0))
+        bpy.ops.object.light_add(type="POINT", location=(lx, 7.0, 6.0))
         lgt = bpy.context.active_object
         lgt.name = f"StreetLight_{i}"
         lgt.data.energy = 400.0
@@ -497,7 +497,6 @@ def import_fbx(filepath: str, name_hint: str) -> bpy.types.Object:
     """FBXを読み込み、最上位オブジェクト（アーマチュア or メッシュ）を返す"""
     before = set(bpy.data.objects.keys())
 
-    # Blender 4.x: bpy.ops.import_scene.fbx
     bpy.ops.import_scene.fbx(
         filepath=filepath,
         use_anim=True,
@@ -525,6 +524,19 @@ def import_fbx(filepath: str, name_hint: str) -> bpy.types.Object:
 
     if root:
         root.name = name_hint
+
+    # NLAトラックを有効化してアニメーションを再生状態にする
+    for obj in new_objs:
+        if obj.animation_data:
+            # アクションを直接再生
+            if obj.animation_data.action:
+                obj.animation_data.action.use_fake_user = True
+            # NLAトラックを有効化
+            for track in obj.animation_data.nla_tracks:
+                track.mute = False
+                for strip in track.strips:
+                    strip.mute = False
+
     return root
 
 
