@@ -562,34 +562,30 @@ def configure_render(cfg: dict):
     scene.render.fps                    = rc["fps"]
     scene.render.filepath = str(SCRIPT_DIR / "output" / "flower_scene_reference")
 
-    # FFMPEG対応確認（Blender 5.xでは利用不可の場合あり）
-    available_formats = bpy.context.scene.render.image_settings.bl_rna.properties["file_format"].enum_items.keys()
-    if "FFMPEG" in available_formats:
+    # MP4出力を試みる。Blender 5.xではFFMPEGが使えない場合はPNG連番にフォールバック
+    try:
         scene.render.image_settings.file_format  = "FFMPEG"
         scene.render.ffmpeg.format               = "MPEG4"
         scene.render.ffmpeg.codec                = "H264"
         scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
         scene.render.ffmpeg.ffmpeg_preset        = "GOOD"
-        print("[Render] 出力形式: MP4 (H.264)")
-    else:
-        # FFMPEGが使えない場合はPNGシーケンスで出力
+        print("[Render] Output: MP4 (H.264)")
+    except TypeError:
         scene.render.image_settings.file_format = "PNG"
-        scene.render.filepath = str(SCRIPT_DIR / "output" / "frames" / "frame_")
-        (SCRIPT_DIR / "output" / "frames").mkdir(parents=True, exist_ok=True)
-        print("[Render] FFMPEG非対応のため PNG シーケンスで出力します")
-        print(f"[Render] 出力先: {SCRIPT_DIR / 'output' / 'frames'}")
-        print("[Render] レンダリング後、Blenderの Video Sequencer でMP4に変換してください")
+        frames_dir = SCRIPT_DIR / "output" / "frames"
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        scene.render.filepath = str(frames_dir / "frame_")
+        print("[Render] FFMPEG unavailable - using PNG sequence")
+        print(f"[Render] Frames: {frames_dir}")
 
     # レンダーエンジン選択（Blender 5.x対応）
-    available_engines = [e.identifier for e in bpy.types.RenderEngine.__subclasses__()]
-    if "BLENDER_EEVEE_NEXT" in bpy.context.preferences.addons.keys() or hasattr(scene, "eevee"):
-        if "BLENDER_EEVEE_NEXT" in [e[0] for e in bpy.types.RenderEngine.bl_rna.properties.get("engine", {}).enum_items if hasattr(bpy.types.RenderEngine.bl_rna.properties.get("engine", {}), "enum_items")] if bpy.types.RenderEngine.bl_rna.properties.get("engine") else True:
-            try:
-                scene.render.engine = "BLENDER_EEVEE_NEXT"
-            except TypeError:
-                scene.render.engine = "BLENDER_EEVEE"
-
-    print(f"[Render] エンジン: {scene.render.engine}")
+    for engine in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
+        try:
+            scene.render.engine = engine
+            print(f"[Render] Engine: {engine}")
+            break
+        except TypeError:
+            continue
 
     if scene.render.engine.startswith("BLENDER_EEVEE") and hasattr(scene, "eevee"):
         eevee = scene.eevee
