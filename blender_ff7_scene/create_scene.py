@@ -465,13 +465,18 @@ def create_camera(cfg: dict) -> bpy.types.Object:
     cam.keyframe_insert("location",       frame=total)
     cam.keyframe_insert("rotation_euler", frame=total)
 
-    # イージング：BEZIER補間
-    if cam.animation_data and cam.animation_data.action:
-        for fc in cam.animation_data.action.fcurves:
-            for kp in fc.keyframe_points:
-                kp.interpolation = "BEZIER"
-                kp.handle_left_type  = "AUTO_CLAMPED"
-                kp.handle_right_type = "AUTO_CLAMPED"
+    # イージング：BEZIER補間（Blender 5.x対応）
+    action = cam.animation_data.action if cam.animation_data else None
+    if action:
+        fcurves = getattr(action, "fcurves", None) or getattr(action, "layers", None)
+        try:
+            for fc in action.fcurves:
+                for kp in fc.keyframe_points:
+                    kp.interpolation = "BEZIER"
+                    kp.handle_left_type  = "AUTO_CLAMPED"
+                    kp.handle_right_type = "AUTO_CLAMPED"
+        except (AttributeError, TypeError):
+            pass
 
     return cam
 
@@ -545,9 +550,12 @@ def animate_passerby_walk(obj: bpy.types.Object, cfg: dict):
     obj.keyframe_insert("location", frame=total)
 
     # 進行方向に向ける
-    for fc in obj.animation_data.action.fcurves:
-        for kp in fc.keyframe_points:
-            kp.interpolation = "LINEAR"
+    try:
+        for fc in obj.animation_data.action.fcurves:
+            for kp in fc.keyframe_points:
+                kp.interpolation = "LINEAR"
+    except (AttributeError, TypeError):
+        pass
 
     rx = cfg["models"]["passerby"]["rotation_euler_deg"][0]
     obj.rotation_euler.x = math.radians(rx)
