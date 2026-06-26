@@ -610,14 +610,22 @@ def configure_render(cfg: dict):
         print("[Render] FFMPEG unavailable - using PNG sequence")
         print(f"[Render] Frames: {frames_dir}")
 
-    # レンダーエンジン選択（Blender 5.x対応）
-    for engine in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
+    # レンダーエンジン選択（Blender 5.x: WorkbenchはPNG連番でも確実に明るく出力）
+    for engine in ("BLENDER_WORKBENCH", "BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
         try:
             scene.render.engine = engine
             print(f"[Render] Engine: {engine}")
             break
         except TypeError:
             continue
+
+    # Workbench設定（明るく・カラー表示）
+    if scene.render.engine == "BLENDER_WORKBENCH":
+        scene.display.shading.light = "STUDIO"
+        scene.display.shading.color_type = "MATERIAL"
+        scene.display.shading.show_shadows = True
+        scene.display.shading.show_cavity = True
+        print("[Render] Workbench: STUDIO lighting with MATERIAL colors")
 
     if scene.render.engine.startswith("BLENDER_EEVEE") and hasattr(scene, "eevee"):
         eevee = scene.eevee
@@ -627,8 +635,6 @@ def configure_render(cfg: dict):
         if hasattr(eevee, "use_gtao"):
             eevee.use_gtao       = True
             eevee.gtao_distance  = 0.5
-        if hasattr(eevee, "use_volumetric_fog"):
-            eevee.use_volumetric_fog = True
 
 
 # -----------------------------------------------------------------------
