@@ -9,7 +9,7 @@ setlocal enabledelayedexpansion
 :: ============================================================
 
 :: --- Blenderの実行ファイルパス（ここを変更） ---
-set BLENDER_EXE=C:\Program Files\Blender Foundation\Blender 4.2\blender.exe
+set BLENDER_EXE=C:\Program Files\Blender Foundation\Blender 5.1\blender.exe
 
 :: --- スクリプトのあるフォルダ（このbatファイルと同じ場所） ---
 set SCRIPT_DIR=%~dp0
