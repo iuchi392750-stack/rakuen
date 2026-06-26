@@ -1,0 +1,61 @@
+{
+  "models": {
+    "flower_girl": {
+      "file": "assets/flower_girl_fall.fbx",
+      "scale": [0.01, 0.01, 0.01],
+      "rotation_euler_deg": [90, 0, 180],
+      "position": [2.0, 0.0, 0.0]
+    },
+    "passerby": {
+      "file": "assets/passerby_walk.fbx",
+      "scale": [0.01, 0.01, 0.01],
+      "rotation_euler_deg": [90, 0, 90],
+      "walk_route": [
+        [-12.0, 0.5, 0.0],
+        [-6.0,  0.5, 0.0],
+        [ 2.0,  0.5, 0.0],
+        [ 8.0,  0.5, 0.0],
+        [ 14.0, 0.5, 0.0]
+      ]
+    }
+  },
+  "animation": {
+    "total_frames": 360,
+    "fps": 24,
+    "fall_start_frame": 220,
+    "collision_frame": 235,
+    "flower_drop_frame": 245,
+    "flower_stomp_start_frame": 300,
+    "flower_stomp_end_frame": 320
+  },
+  "camera": {
+    "start_location": [0.0, -10.0, 35.0],
+    "end_location": [3.5, -5.0, 3.5],
+    "start_rotation_euler_deg": [60, 0, 0],
+    "end_rotation_euler_deg": [82, 0, 8],
+    "mid_location": [1.0, -8.0, 15.0],
+    "mid_rotation_euler_deg": [72, 0, 5]
+  },
+  "render": {
+    "output_path": "//output/flower_scene_reference",
+    "resolution_x": 1920,
+    "resolution_y": 1080,
+    "fps": 24,
+    "format": "FFMPEG",
+    "codec": "H264",
+    "container": "MPEG4"
+  },
+  "cars": [
+    {"start": [-15.0, -2.5, 0.05], "end": [15.0, -2.5, 0.05], "frame_start": 1,   "frame_end": 180, "color": [0.6, 0.1, 0.1]},
+    {"start": [15.0,  -4.0, 0.05], "end": [-15.0, -4.0, 0.05], "frame_start": 40,  "frame_end": 220, "color": [0.1, 0.2, 0.5]},
+    {"start": [-15.0, -2.0, 0.05], "end": [15.0, -2.0, 0.05],  "frame_start": 100, "frame_end": 280, "color": [0.3, 0.3, 0.3]},
+    {"start": [15.0,  -3.0, 0.05], "end": [-15.0, -3.0, 0.05], "frame_start": 150, "frame_end": 330, "color": [0.2, 0.5, 0.2]}
+  ],
+  "scene": {
+    "road_width": 10.0,
+    "road_length": 40.0,
+    "sidewalk_width": 4.0,
+    "building_count": 8,
+    "fog_density": 0.015
+  }
+}
