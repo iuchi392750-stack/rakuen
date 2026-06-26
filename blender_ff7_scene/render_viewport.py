@@ -51,13 +51,26 @@ def configure_output():
     output_path = str(output_dir / "flower_scene_reference")
     scene.render.filepath = output_path
 
-    # フォーマット
-    scene.render.image_settings.file_format = "FFMPEG"
-    scene.render.ffmpeg.format              = "MPEG4"
-    scene.render.ffmpeg.codec               = "H264"
-    scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
-    scene.render.ffmpeg.ffmpeg_preset        = "GOOD"
-    scene.render.ffmpeg.audio_codec         = "AAC"
+    # FFMPEG対応確認（Blender 5.xでは利用不可の場合あり）
+    available_formats = scene.render.image_settings.bl_rna.properties["file_format"].enum_items.keys()
+    if "FFMPEG" in available_formats:
+        scene.render.image_settings.file_format  = "FFMPEG"
+        scene.render.ffmpeg.format               = "MPEG4"
+        scene.render.ffmpeg.codec                = "H264"
+        scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
+        scene.render.ffmpeg.ffmpeg_preset        = "GOOD"
+        try:
+            scene.render.ffmpeg.audio_codec = "AAC"
+        except Exception:
+            pass
+        print("[Render] Output format: MP4 (H.264)")
+    else:
+        frames_dir = output_dir / "frames"
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        scene.render.image_settings.file_format = "PNG"
+        scene.render.filepath = str(frames_dir / "frame_")
+        print("[Render] FFMPEG not available - rendering PNG sequence")
+        print(f"[Render] Frames output: {frames_dir}")
 
     # 解像度・fps
     scene.render.resolution_x           = 1920

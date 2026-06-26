@@ -556,28 +556,51 @@ def set_animation_range(cfg: dict):
 def configure_render(cfg: dict):
     rc    = cfg["render"]
     scene = bpy.context.scene
-    scene.render.resolution_x    = rc["resolution_x"]
-    scene.render.resolution_y    = rc["resolution_y"]
-    scene.render.resolution_percentage = 100
-    scene.render.fps              = rc["fps"]
-    scene.render.image_settings.file_format = rc["format"]
-    scene.render.ffmpeg.format    = rc["container"]
-    scene.render.ffmpeg.codec     = rc["codec"]
-    scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
-    scene.render.ffmpeg.ffmpeg_preset        = "GOOD"
+    scene.render.resolution_x           = rc["resolution_x"]
+    scene.render.resolution_y           = rc["resolution_y"]
+    scene.render.resolution_percentage  = 100
+    scene.render.fps                    = rc["fps"]
     scene.render.filepath = str(SCRIPT_DIR / "output" / "flower_scene_reference")
 
-    # Cycles or EEVEE
-    scene.render.engine = "BLENDER_EEVEE_NEXT" if hasattr(bpy.context.scene.eevee, "use_gtao") else "BLENDER_EEVEE"
+    # FFMPEG対応確認（Blender 5.xでは利用不可の場合あり）
+    available_formats = bpy.context.scene.render.image_settings.bl_rna.properties["file_format"].enum_items.keys()
+    if "FFMPEG" in available_formats:
+        scene.render.image_settings.file_format  = "FFMPEG"
+        scene.render.ffmpeg.format               = "MPEG4"
+        scene.render.ffmpeg.codec                = "H264"
+        scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
+        scene.render.ffmpeg.ffmpeg_preset        = "GOOD"
+        print("[Render] 出力形式: MP4 (H.264)")
+    else:
+        # FFMPEGが使えない場合はPNGシーケンスで出力
+        scene.render.image_settings.file_format = "PNG"
+        scene.render.filepath = str(SCRIPT_DIR / "output" / "frames" / "frame_")
+        (SCRIPT_DIR / "output" / "frames").mkdir(parents=True, exist_ok=True)
+        print("[Render] FFMPEG非対応のため PNG シーケンスで出力します")
+        print(f"[Render] 出力先: {SCRIPT_DIR / 'output' / 'frames'}")
+        print("[Render] レンダリング後、Blenderの Video Sequencer でMP4に変換してください")
 
-    if scene.render.engine.startswith("BLENDER_EEVEE"):
-        scene.eevee.use_bloom         = True
-        scene.eevee.bloom_intensity   = 0.3
-        scene.eevee.use_gtao          = True
-        scene.eevee.gtao_distance     = 0.5
-        scene.eevee.use_volumetric_fog = True
-        scene.eevee.shadow_cube_size  = "1024"
-        scene.eevee.shadow_cascade_size = "1024"
+    # レンダーエンジン選択（Blender 5.x対応）
+    available_engines = [e.identifier for e in bpy.types.RenderEngine.__subclasses__()]
+    if "BLENDER_EEVEE_NEXT" in bpy.context.preferences.addons.keys() or hasattr(scene, "eevee"):
+        if "BLENDER_EEVEE_NEXT" in [e[0] for e in bpy.types.RenderEngine.bl_rna.properties.get("engine", {}).enum_items if hasattr(bpy.types.RenderEngine.bl_rna.properties.get("engine", {}), "enum_items")] if bpy.types.RenderEngine.bl_rna.properties.get("engine") else True:
+            try:
+                scene.render.engine = "BLENDER_EEVEE_NEXT"
+            except TypeError:
+                scene.render.engine = "BLENDER_EEVEE"
+
+    print(f"[Render] エンジン: {scene.render.engine}")
+
+    if scene.render.engine.startswith("BLENDER_EEVEE") and hasattr(scene, "eevee"):
+        eevee = scene.eevee
+        if hasattr(eevee, "use_bloom"):
+            eevee.use_bloom       = True
+            eevee.bloom_intensity = 0.3
+        if hasattr(eevee, "use_gtao"):
+            eevee.use_gtao       = True
+            eevee.gtao_distance  = 0.5
+        if hasattr(eevee, "use_volumetric_fog"):
+            eevee.use_volumetric_fog = True
 
 
 # -----------------------------------------------------------------------
