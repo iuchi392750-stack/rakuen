@@ -237,6 +237,8 @@ def create_flowers(cfg: dict, girl_pos: list) -> bpy.types.Object:
     bunch = bpy.context.active_object
     bunch.name = "FlowerBunch"
 
+    child_objects = []
+
     # 花びら 5輪
     for i in range(5):
         angle = i * (math.tau / 5)
@@ -248,6 +250,7 @@ def create_flowers(cfg: dict, girl_pos: list) -> bpy.types.Object:
         petal.name = f"Flower_{i}"
         petal.parent = bunch
         petal.data.materials.append(flower_mat)
+        child_objects.append(petal)
 
         # 茎
         bpy.ops.mesh.primitive_cylinder_add(radius=0.03, depth=0.3,
@@ -256,17 +259,19 @@ def create_flowers(cfg: dict, girl_pos: list) -> bpy.types.Object:
         stem.name = f"Stem_{i}"
         stem.parent = bunch
         stem.data.materials.append(stem_mat)
+        child_objects.append(stem)
 
-    # 花束は drop_frame まで非表示
-    bunch.hide_viewport = True
-    bunch.hide_render   = True
-    bunch.keyframe_insert("hide_viewport", frame=1)
-    bunch.keyframe_insert("hide_render",   frame=1)
-
-    bunch.hide_viewport = False
-    bunch.hide_render   = False
-    bunch.keyframe_insert("hide_viewport", frame=drop_f)
-    bunch.keyframe_insert("hide_render",   frame=drop_f)
+    # 花束＋子オブジェクト全部を drop_frame まで非表示
+    all_flower_objs = [bunch] + child_objects
+    for obj in all_flower_objs:
+        obj.hide_viewport = True
+        obj.hide_render   = True
+        obj.keyframe_insert("hide_viewport", frame=1)
+        obj.keyframe_insert("hide_render",   frame=1)
+        obj.hide_viewport = False
+        obj.hide_render   = False
+        obj.keyframe_insert("hide_viewport", frame=drop_f)
+        obj.keyframe_insert("hide_render",   frame=drop_f)
 
     # 踏まれてZ方向に潰れる
     bunch.scale = (1, 1, 1)

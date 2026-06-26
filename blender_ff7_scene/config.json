@@ -29,11 +29,11 @@
     "flower_stomp_end_frame": 320
   },
   "camera": {
-    "start_location": [0.0, -5.0, 40.0],
-    "end_location": [2.0, -8.0, 5.0],
-    "start_rotation_euler_deg": [15, 0, 0],
-    "end_rotation_euler_deg": [70, 0, 0],
-    "mid_location": [0.0, -10.0, 18.0],
+    "start_location": [0.0, -3.0, 32.0],
+    "end_location": [2.5, -4.0, 2.0],
+    "start_rotation_euler_deg": [10, 0, 0],
+    "end_rotation_euler_deg": [75, 0, 0],
+    "mid_location": [1.0, -6.0, 10.0],
     "mid_rotation_euler_deg": [55, 0, 0]
   },
   "render": {
@@ -46,10 +46,10 @@
     "container": "MPEG4"
   },
   "cars": [
-    {"start": [-15.0, -2.5, 0.05], "end": [15.0, -2.5, 0.05], "frame_start": 1,   "frame_end": 180, "color": [0.6, 0.1, 0.1]},
-    {"start": [15.0,  -4.0, 0.05], "end": [-15.0, -4.0, 0.05], "frame_start": 40,  "frame_end": 220, "color": [0.1, 0.2, 0.5]},
-    {"start": [-15.0, -2.0, 0.05], "end": [15.0, -2.0, 0.05],  "frame_start": 100, "frame_end": 280, "color": [0.3, 0.3, 0.3]},
-    {"start": [15.0,  -3.0, 0.05], "end": [-15.0, -3.0, 0.05], "frame_start": 150, "frame_end": 330, "color": [0.2, 0.5, 0.2]}
+    {"start": [-18.0, -1.5, 0.05], "end": [18.0, -1.5, 0.05],  "frame_start": 30,  "frame_end": 150, "color": [0.6, 0.1, 0.1]},
+    {"start": [18.0,  -3.0, 0.05], "end": [-18.0, -3.0, 0.05], "frame_start": 80,  "frame_end": 200, "color": [0.1, 0.2, 0.5]},
+    {"start": [-18.0, -2.0, 0.05], "end": [18.0, -2.0, 0.05],  "frame_start": 140, "frame_end": 260, "color": [0.3, 0.3, 0.3]},
+    {"start": [18.0,  -1.0, 0.05], "end": [-18.0, -1.0, 0.05], "frame_start": 200, "frame_end": 320, "color": [0.2, 0.5, 0.2]}
   ],
   "scene": {
     "road_width": 10.0,
