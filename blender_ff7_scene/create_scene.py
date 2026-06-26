@@ -378,7 +378,7 @@ def create_lights(cfg: dict):
         pole.data.materials.append(pole_mat)
 
         # ランプヘッド
-        bpy.ops.mesh.primitive_sphere_add(radius=0.3, location=(lx, 5.5, 6.1))
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.3, location=(lx, 5.5, 6.1), segments=8, ring_count=6)
         head = bpy.context.active_object
         head.name = f"LampHead_{i}"
         head.data.materials.append(light_mat)
