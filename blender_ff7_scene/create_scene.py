@@ -350,21 +350,30 @@ def create_cars(cfg: dict):
 # ライト
 # -----------------------------------------------------------------------
 def create_lights(cfg: dict):
-    # 太陽光（薄い夕方オレンジ）
+    # 太陽光（強め）
     bpy.ops.object.light_add(type="SUN", location=(5, -10, 20))
     sun = bpy.context.active_object
     sun.name = "Sun"
     sun.rotation_euler = (math.radians(50), math.radians(15), math.radians(30))
-    sun.data.energy = 2.0
+    sun.data.energy = 8.0
     sun.data.color  = (1.0, 0.85, 0.65)
 
-    # アンビエント補助（エリアライト）
+    # アンビエント補助（エリアライト・強め）
     bpy.ops.object.light_add(type="AREA", location=(0, 0, 18))
     amb = bpy.context.active_object
     amb.name = "Ambient"
-    amb.data.energy = 30.0
-    amb.data.size   = 20.0
-    amb.data.color  = (0.5, 0.55, 0.8)
+    amb.data.energy = 200.0
+    amb.data.size   = 30.0
+    amb.data.color  = (0.6, 0.65, 0.9)
+
+    # 追加エリアライト（正面から）
+    bpy.ops.object.light_add(type="AREA", location=(0, -15, 10))
+    front = bpy.context.active_object
+    front.name = "FrontLight"
+    front.rotation_euler = (math.radians(60), 0, 0)
+    front.data.energy = 150.0
+    front.data.size   = 20.0
+    front.data.color  = (1.0, 0.95, 0.9)
 
     # 街灯 x3
     pole_mat   = make_material("PoleMat",  (0.3, 0.3, 0.3), roughness=0.5)
@@ -403,8 +412,8 @@ def create_fog(cfg: dict):
     wn.clear()
 
     bg = wn.new("ShaderNodeBackground")
-    bg.inputs["Color"].default_value    = (0.25, 0.22, 0.30, 1.0)
-    bg.inputs["Strength"].default_value = 0.8
+    bg.inputs["Color"].default_value    = (0.4, 0.45, 0.6, 1.0)
+    bg.inputs["Strength"].default_value = 2.0
 
     # ボリュームノード名はBlenderバージョンによって異なる
     vol = None
