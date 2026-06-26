@@ -523,7 +523,11 @@ def place_model(obj: bpy.types.Object, model_cfg: dict):
     """モデルをconfigの位置・スケール・回転に設定"""
     if obj is None:
         return
-    obj.location = model_cfg["position"]
+    # positionがない場合はwalk_routeの最初の点を使う
+    if "position" in model_cfg:
+        obj.location = model_cfg["position"]
+    elif "walk_route" in model_cfg:
+        obj.location = model_cfg["walk_route"][0]
     obj.scale    = model_cfg["scale"]
     rx, ry, rz   = model_cfg["rotation_euler_deg"]
     obj.rotation_euler = (math.radians(rx), math.radians(ry), math.radians(rz))
