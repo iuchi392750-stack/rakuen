@@ -564,36 +564,139 @@ def place_model(obj: bpy.types.Object, model_cfg: dict):
     obj.rotation_euler = (math.radians(rx), math.radians(ry), math.radians(rz))
 
 
-def animate_passerby_walk(obj: bpy.types.Object, cfg: dict):
-    """歩行ルートに沿って通行人を移動させる"""
+def set_keyframe(obj, frame, location=None, rotation_deg=None, scale=None):
+    """オブジェクトにキーフレームをセットするヘルパー"""
+    bpy.context.scene.frame_set(frame)
+    if location is not None:
+        obj.location = location
+        obj.keyframe_insert("location", frame=frame)
+    if rotation_deg is not None:
+        obj.rotation_euler = tuple(math.radians(r) for r in rotation_deg)
+        obj.keyframe_insert("rotation_euler", frame=frame)
+    if scale is not None:
+        obj.scale = scale
+        obj.keyframe_insert("scale", frame=frame)
+
+
+def animate_passerby(obj: bpy.types.Object, cfg: dict):
+    """
+    通行人の動きをすべてキーフレームで制御。
+    FBXアニメーションに依存しない。
+    歩行：X軸方向に移動（上下ボブで歩行感を出す）
+    衝突：少女の位置で一瞬止まり前傾
+    立ち去り：そのまま歩き続ける
+    """
     if obj is None:
         return
 
-    route      = cfg["models"]["passerby"]["walk_route"]
-    total      = cfg["animation"]["total_frames"]
-    coll_frame = cfg["animation"]["collision_frame"]
-
-    n_points = len(route)
-    for i, pos in enumerate(route):
-        f = int(1 + (coll_frame - 1) * i / (n_points - 1))
-        obj.location = (pos[0], pos[1], pos[2])
-        obj.keyframe_insert("location", frame=f)
-
-    # 衝突後も少し進む
-    last = route[-1]
-    obj.location = (last[0], last[1], last[2])
-    obj.keyframe_insert("location", frame=total)
-
-    # 進行方向に向ける
-    try:
-        for fc in obj.animation_data.action.fcurves:
-            for kp in fc.keyframe_points:
-                kp.interpolation = "LINEAR"
-    except (AttributeError, TypeError):
-        pass
-
+    anim = cfg["animation"]
+    coll = anim["collision_frame"]
+    total = anim["total_frames"]
+    sc = cfg["models"]["passerby"]["scale"]
     rx = cfg["models"]["passerby"]["rotation_euler_deg"][0]
-    obj.rotation_euler.x = math.radians(rx)
+
+    # 初期スケール・向き
+    girl_x = cfg["models"]["flower_girl"]["position"][0]
+
+    # 歩行ボブ（上下0.05mの揺れ）
+    def bob(f):
+        return math.sin(f * 0.4) * 0.05
+
+    # F1: 画面左端に登場
+    set_keyframe(obj, 1,
+        location=(-13.0, 0.5, 0.0),
+        rotation_deg=(rx, 0, 90))  # X軸正方向を向く
+
+    # F1〜collision: 歩行移動（ボブあり）
+    steps = 12
+    for i in range(1, steps + 1):
+        f = int(1 + (coll - 10 - 1) * i / steps)
+        x = -13.0 + (girl_x - 0.3 - (-13.0)) * i / steps
+        z = bob(f)
+        set_keyframe(obj, f, location=(x, 0.5, z))
+
+    # collision-5: 少女の直前（衝突直前）
+    set_keyframe(obj, coll - 5,
+        location=(girl_x - 0.5, 0.5, 0.0))
+
+    # collision: 衝突・前傾姿勢
+    set_keyframe(obj, coll,
+        location=(girl_x + 0.2, 0.5, 0.0),
+        rotation_deg=(rx, 0, 90))
+
+    # collision+10: 衝突後もそのまま歩く
+    set_keyframe(obj, coll + 10,
+        location=(girl_x + 1.5, 0.5, 0.0))
+
+    # 花を踏むフレーム
+    stomp_s = anim["flower_stomp_start_frame"]
+    stomp_e = anim["flower_stomp_end_frame"]
+    flower_x = cfg["models"]["flower_girl"]["position"][0] - 0.3
+
+    set_keyframe(obj, stomp_s - 5,
+        location=(flower_x - 0.5, 0.5, 0.0))
+    set_keyframe(obj, stomp_s,
+        location=(flower_x, 0.5, 0.0))
+    set_keyframe(obj, stomp_e,
+        location=(flower_x + 0.5, 0.5, 0.0))
+
+    # 最終: 画面右端へ退場
+    set_keyframe(obj, total,
+        location=(14.0, 0.5, 0.0))
+
+    print("[Anim] Passerby walk animated (programmatic)")
+
+
+def animate_girl_fall(obj: bpy.types.Object, cfg: dict):
+    """
+    花売り少女の動きをキーフレームで制御。
+    立っている → 衝突でよろける → 倒れる
+    """
+    if obj is None:
+        return
+
+    anim = cfg["animation"]
+    fall_f = anim["fall_start_frame"]
+    coll   = anim["collision_frame"]
+    total  = anim["total_frames"]
+    pos    = cfg["models"]["flower_girl"]["position"]
+    sc     = cfg["models"]["flower_girl"]["scale"]
+    rx     = cfg["models"]["flower_girl"]["rotation_euler_deg"][0]
+
+    # F1〜fall_start: 直立して立っている
+    set_keyframe(obj, 1,
+        location=(pos[0], pos[1], pos[2]),
+        rotation_deg=(rx, 0, 180),
+        scale=sc)
+
+    set_keyframe(obj, fall_f - 1,
+        location=(pos[0], pos[1], pos[2]),
+        rotation_deg=(rx, 0, 180))
+
+    # fall_start〜collision: よろける（後ろに傾く）
+    set_keyframe(obj, fall_f,
+        location=(pos[0], pos[1] + 0.1, pos[2]),
+        rotation_deg=(rx - 10, 0, 180))
+
+    set_keyframe(obj, coll,
+        location=(pos[0] + 0.3, pos[1] + 0.3, pos[2]),
+        rotation_deg=(rx - 30, 0, 175))
+
+    # collision後: 地面に倒れる
+    set_keyframe(obj, coll + 15,
+        location=(pos[0] + 0.5, pos[1] + 0.8, pos[2]),
+        rotation_deg=(rx - 70, 0, 170))
+
+    set_keyframe(obj, coll + 25,
+        location=(pos[0] + 0.6, pos[1] + 1.2, 0.0),
+        rotation_deg=(0, 0, 170))  # 地面に横たわる
+
+    # 倒れたまま静止
+    set_keyframe(obj, total,
+        location=(pos[0] + 0.6, pos[1] + 1.2, 0.0),
+        rotation_deg=(0, 0, 170))
+
+    print("[Anim] Girl fall animated (programmatic)")
 
 
 def set_animation_range(cfg: dict):
@@ -708,8 +811,12 @@ def main():
     place_model(girl_obj,     girl_cfg)
     place_model(passerby_obj, passerby_cfg)
 
-    # 通行人の歩行アニメーション（位置キーフレーム）
-    animate_passerby_walk(passerby_obj, cfg)
+    # キャラクターのアニメーションをすべてコードで制御
+    print("[8b] 通行人の歩行アニメーションを生成中...")
+    animate_passerby(passerby_obj, cfg)
+
+    print("[8c] 少女の転倒アニメーションを生成中...")
+    animate_girl_fall(girl_obj, cfg)
 
     print("[9/9] 花を生成中...")
     create_flowers(cfg, girl_cfg["position"])
