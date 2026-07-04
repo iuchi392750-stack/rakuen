@@ -63,6 +63,8 @@ def parse_args():
     p.add_argument("--out", default="./out", help="出力フォルダ(.blend と動画)")
     p.add_argument("--render", action="store_true", help="構築後にそのままレンダリングする")
     p.add_argument("--fps", type=int, default=FPS)
+    p.add_argument("--engine", choices=["eevee", "workbench", "cycles"], default="eevee",
+                   help="レンダリングエンジン。GPU の無いサーバーでは workbench を推奨")
     return p.parse_args(argv)
 
 
@@ -172,8 +174,25 @@ def analyze_clip(scene, arm, act):
 
 # ------------------------------------------------------------- NLA の組み立て --
 
+def key_influence(strip, points):
+    """ストリップの影響度を直線補間でキーフレームする(クロスフェード用)"""
+    strip.use_animated_influence = True
+    fc = strip.fcurves.find("influence")
+    for f, v in points:
+        kp = fc.keyframe_points.insert(f, v)
+        kp.interpolation = "LINEAR"
+
+
 def build_nla(scene, arm, clips, fps):
-    """クリップを NLA に並べ、ワープしないように delta_location/rotation をキーで補正する"""
+    """クリップを NLA に並べ、ワープしないように delta_location/rotation をキーで補正する
+
+    繋ぎ目の処理:
+      - 奇数番目のクリップは上のトラック(B)に置き、影響度を 0→1(入り)/ 1→0(抜け)で
+        直線的にクロスフェードする。NLA の自動ブレンドは両側が同時にフェードして
+        レストポーズが混ざる(繋ぎ目でキャラが原点方向に引っ張られる)ため使わない。
+      - 同じ区間で delta_location / delta_rotation も直線で切り替えるので、
+        位置のオフセットとポーズのフェードが打ち消し合って腰の軌道が滑らかになる。
+    """
     ad = arm.animation_data
     ad.action = None
     tracks = [ad.nla_tracks.new(), ad.nla_tracks.new()]  # 交互に使うとオーバーラップできる
@@ -231,9 +250,17 @@ def build_nla(scene, arm, clips, fps):
         strip_start = cursor - blend if prev is not None else 1
         track = tracks[i % 2]
         strip = track.strips.new(info["name"], int(strip_start), info["act"])
-        strip.use_auto_blend = True
+        strip.use_auto_blend = False
         strip.extrapolation = "NOTHING"
         strip_end = strip_start + info["length"]
+
+        # クロスフェード: 上のトラック(奇数番)のストリップだけ影響度を直線で上げ下げする。
+        # 入りは自分のフェードイン、抜けは次クリップとの重なりで自分をフェードアウト。
+        if i % 2 == 1:
+            key_influence(strip, [(strip_start, 0.0), (strip_start + blend, 1.0)])
+        elif i > 0:
+            prev_strip = tracks[1].strips[-1]  # 直前の上トラックのストリップ
+            key_influence(prev_strip, [(strip_start, 1.0), (strip_start + blend, 0.0)])
 
         # 障害物の位置(クリップ中盤の腰位置の真下)を記録
         obs_kind = ov.get("obstacle")
@@ -356,7 +383,7 @@ def build_camera(scene, arm, fps):
 
 # ------------------------------------------------------------- レンダー設定 --
 
-def setup_render(scene, out_dir, fps):
+def setup_render(scene, out_dir, fps, engine="eevee"):
     r = scene.render
     r.fps = fps
     r.resolution_x, r.resolution_y = RESOLUTION
@@ -366,14 +393,17 @@ def setup_render(scene, out_dir, fps):
     r.ffmpeg.constant_rate_factor = "MEDIUM"
     r.filepath = os.path.join(out_dir, "parkour_preview.mp4")
 
-    # EEVEE が使えれば EEVEE、ヘッドレスで GPU が無い環境では Workbench に落とす
-    try:
-        scene.render.engine = "BLENDER_EEVEE"
-    except TypeError:
+    if engine == "workbench":
+        r.engine = "BLENDER_WORKBENCH"
+    elif engine == "cycles":
+        r.engine = "CYCLES"
+        scene.cycles.samples = 32
+    else:
+        # EEVEE は Blender 4.2 以降で名前が変わった
         try:
-            scene.render.engine = "BLENDER_EEVEE_NEXT"
+            r.engine = "BLENDER_EEVEE"
         except TypeError:
-            scene.render.engine = "BLENDER_WORKBENCH"
+            r.engine = "BLENDER_EEVEE_NEXT"
 
 
 # -------------------------------------------------------------------- main --
@@ -391,7 +421,7 @@ def main():
     obstacles = build_nla(scene, arm, clips, args.fps)
     build_environment(obstacles)
     build_camera(scene, arm, args.fps)
-    setup_render(scene, out_dir, args.fps)
+    setup_render(scene, out_dir, args.fps, args.engine)
 
     blend_path = os.path.join(out_dir, "parkour.blend")
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
@@ -399,13 +429,14 @@ def main():
 
     if args.render:
         print("レンダリング開始…")
-        try:
-            bpy.ops.render.render(animation=True)
-        except Exception as e:
-            print("EEVEE でのレンダリングに失敗。Workbench で再試行します:", e)
+        bpy.ops.render.render(animation=True)
+        out = scene.render.filepath
+        # GPU の無い環境では EEVEE が空ファイルを出して静かに失敗することがある
+        if os.path.getsize(out) < 10_000:
+            print("出力が空です。Workbench エンジンで再試行します…")
             scene.render.engine = "BLENDER_WORKBENCH"
             bpy.ops.render.render(animation=True)
-        print("完了:", scene.render.filepath)
+        print("完了:", out)
 
 
 if __name__ == "__main__":

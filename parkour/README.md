@@ -68,6 +68,9 @@ blender -b -P build_parkour.py -- --anims ./anims --out ./out --render
 `--render` を外せばシーン構築だけ行うので、Blender で開いて
 カメラ位置や障害物を調整してから **Ctrl+F12** でレンダリングしても OK です。
 
+GPU の無いサーバーで実行する場合は `--engine workbench` を付けてください
+(EEVEE より簡素な見た目ですが高速で、動きの参照用途には十分です)。
+
 ### 4. Seedance 2.0 で最終映像に変換
 
 Seedance 2.0 は 1 回の生成が **4〜15 秒**なので、30 秒のプレビューを
