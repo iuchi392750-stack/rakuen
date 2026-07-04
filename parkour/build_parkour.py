@@ -28,8 +28,10 @@ from mathutils import Euler, Matrix, Vector
 # ---------------------------------------------------------------- 設定 --
 
 FPS = 30                 # Mixamo の FBX は 30fps なので合わせる
-TARGET_SECONDS = 30      # 目標尺(足りない/超過は警告のみ)
+TARGET_SECONDS = 30      # 目標尺。足りない分はループ可能なクリップの繰り返しで自動的に埋める
 DEFAULT_BLEND = 12       # クリップの繋ぎ目でブレンドするフレーム数
+LOOP_BLEND = 4           # 同じクリップを繰り返すときのブレンドフレーム数
+LOOP_KEYWORD = "running" # この文字列を含むクリップは尺埋めの繰り返しに使ってよい
 CAMERA_OFFSET = Vector((-3.5, -5.5, 2.0))   # 腰から見たカメラの位置(ワールド)
 CAMERA_BAKE_STEP = 4     # カメラ追従ターゲットのキーを打つ間隔(大きいほど滑らか)
 RESOLUTION = (1280, 720)
@@ -38,6 +40,8 @@ RESOLUTION = (1280, 720)
 #   blend      : このクリップへ入るときのブレンドフレーム数
 #   yaw_extra  : 追加で回転させる角度(度)。曲がるコースにしたいときに使う
 #   obstacle   : "box" / "bar" / "wall" / None  (自動判定を上書き)
+#   repeat     : このクリップをその場で何回連続再生するか
+#   loop       : True なら尺埋めの自動繰り返しに使ってよい(既定は名前に running を含むもの)
 CLIP_OVERRIDES = {
     # "02_vault": {"blend": 15, "yaw_extra": 0, "obstacle": "box"},
 }
@@ -174,6 +178,73 @@ def analyze_clip(scene, arm, act):
 
 # ------------------------------------------------------------- NLA の組み立て --
 
+def compute_blends(instances):
+    """各繋ぎ目のブレンド幅を決める。
+
+    - 同じクリップの繰り返しの間は LOOP_BLEND(ループは端の姿勢がほぼ同じなので短くてよい)
+    - NLA はストリップを 2 本のトラックに交互に置くため、隣り合うブレンド区間が
+      1 つのクリップの中で重なると同一トラック上で衝突する。
+      そのため b[i] <= 前クリップの長さ - b[i-1] - 1 に必ずクランプする。
+    """
+    blends = [0]
+    for i in range(1, len(instances)):
+        cur, prev = instances[i], instances[i - 1]
+        if cur["act"] is prev["act"]:
+            b = LOOP_BLEND
+        else:
+            b = int(CLIP_OVERRIDES.get(cur["name"], {}).get("blend", DEFAULT_BLEND))
+        b = min(b, prev["length"] - blends[i - 1] - 1, cur["length"] - 1)
+        blends.append(max(b, 1))
+    return blends
+
+
+def total_frames(instances):
+    return 1 + sum(inst["length"] for inst in instances) - sum(compute_blends(instances))
+
+
+def build_plan(infos, fps):
+    """クリップ列を組み立てる。repeat 指定を展開し、目標尺に足りなければ
+    ループ可能なクリップ(名前に running を含む、または loop: True)を繰り返して埋める"""
+    instances = []
+    for info in infos:
+        rep = max(1, int(CLIP_OVERRIDES.get(info["name"], {}).get("repeat", 1)))
+        instances.extend([dict(info)] * rep)
+
+    def loopable(inst):
+        ov = CLIP_OVERRIDES.get(inst["name"], {})
+        return bool(ov.get("loop", LOOP_KEYWORD in inst["name"].lower()))
+
+    # 連続する同じクリップを (クリップ, 回数) のグループにまとめ、
+    # ループ可能なグループへ順繰りに +1 して均等に尺を伸ばす
+    groups = []
+    for inst in instances:
+        if groups and groups[-1][0]["act"] is inst["act"]:
+            groups[-1][1] += 1
+        else:
+            groups.append([inst, 1])
+    loop_groups = [g for g in groups if loopable(g[0])]
+
+    def expand():
+        out = []
+        for info, count in groups:
+            out.extend([dict(info)] * count)
+        return out
+
+    target = TARGET_SECONDS * fps
+    added = 0
+    while total_frames(expand()) < target:
+        if not loop_groups:
+            print("注意: ループ可能なクリップが無いため目標尺まで埋められません")
+            break
+        loop_groups[added % len(loop_groups)][1] += 1
+        added += 1
+        if added > 2000:
+            break
+    if added:
+        print(f"目標 {TARGET_SECONDS} 秒に合わせて走りクリップを {added} 回繰り返しました")
+    return expand()
+
+
 def key_influence(strip, points):
     """ストリップの影響度を直線補間でキーフレームする(クロスフェード用)"""
     strip.use_animated_influence = True
@@ -204,6 +275,9 @@ def build_nla(scene, arm, clips, fps):
         info["name"], info["act"] = name, act
         infos.append(info)
 
+    instances = build_plan(infos, fps)
+    blends = compute_blends(instances)
+
     acc_loc = Vector((0.0, 0.0, 0.0))
     acc_yaw = 0.0
     cursor = 1
@@ -211,10 +285,12 @@ def build_nla(scene, arm, clips, fps):
     obstacles = []
     prev = None
 
-    for i, info in enumerate(infos):
+    for i, info in enumerate(instances):
         ov = CLIP_OVERRIDES.get(info["name"], {})
-        blend = int(ov.get("blend", DEFAULT_BLEND))
+        blend = blends[i]
         yaw_extra = math.radians(float(ov.get("yaw_extra", 0.0)))
+        if prev is not None and prev["act"] is info["act"]:
+            yaw_extra = 0.0  # 繰り返し中はコースが螺旋にならないよう追加回転しない
 
         if prev is not None:
             # 前クリップ末尾と今クリップ先頭の位置・向きが一致するようオフセットを更新
