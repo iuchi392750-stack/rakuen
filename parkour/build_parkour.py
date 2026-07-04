@@ -69,6 +69,8 @@ def parse_args():
     p.add_argument("--fps", type=int, default=FPS)
     p.add_argument("--engine", choices=["eevee", "workbench", "cycles"], default="eevee",
                    help="レンダリングエンジン。GPU の無いサーバーでは workbench を推奨")
+    p.add_argument("--seconds", type=float, default=TARGET_SECONDS,
+                   help="目標の尺(秒)。足りない分は走りクリップの繰り返しで埋める")
     return p.parse_args(argv)
 
 
@@ -230,16 +232,18 @@ def build_plan(infos, fps):
             out.extend([dict(info)] * count)
         return out
 
+    # 目標尺を超えない範囲まで繰り返しを足す(Seedance の 15 秒上限を超えないため)
     target = TARGET_SECONDS * fps
     added = 0
-    while total_frames(expand()) < target:
-        if not loop_groups:
-            print("注意: ループ可能なクリップが無いため目標尺まで埋められません")
+    while loop_groups and added <= 2000:
+        gi = loop_groups[added % len(loop_groups)]
+        gi[1] += 1
+        if total_frames(expand()) > target:
+            gi[1] -= 1
             break
-        loop_groups[added % len(loop_groups)][1] += 1
         added += 1
-        if added > 2000:
-            break
+    if not loop_groups and total_frames(expand()) < target:
+        print("注意: ループ可能なクリップが無いため目標尺まで埋められません")
     if added:
         print(f"目標 {TARGET_SECONDS} 秒に合わせて走りクリップを {added} 回繰り返しました")
     return expand()
@@ -485,7 +489,9 @@ def setup_render(scene, out_dir, fps, engine="eevee"):
 # -------------------------------------------------------------------- main --
 
 def main():
+    global TARGET_SECONDS
     args = parse_args()
+    TARGET_SECONDS = args.seconds
     out_dir = os.path.abspath(args.out)
     os.makedirs(out_dir, exist_ok=True)
 
