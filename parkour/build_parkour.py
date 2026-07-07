@@ -31,7 +31,7 @@ FPS = 30                 # Mixamo の FBX は 30fps なので合わせる
 TARGET_SECONDS = 30      # 目標尺。足りない分はループ可能なクリップの繰り返しで自動的に埋める
 DEFAULT_BLEND = 12       # クリップの繋ぎ目でブレンドするフレーム数
 LOOP_BLEND = 4           # 同じクリップを繰り返すときのブレンドフレーム数
-LOOP_KEYWORD = "running" # この文字列を含むクリップは尺埋めの繰り返しに使ってよい
+LOOP_KEYWORDS = ("running", "walk", "run")  # これらを含むクリップは尺埋めの繰り返しに使ってよい
 CAMERA_OFFSET = Vector((-3.5, -5.5, 2.0))   # 腰から見たカメラの位置(ワールド)
 CAMERA_BAKE_STEP = 4     # カメラ追従ターゲットのキーを打つ間隔(大きいほど滑らか)
 RESOLUTION = (1280, 720)
@@ -214,7 +214,7 @@ def build_plan(infos, fps):
 
     def loopable(inst):
         ov = CLIP_OVERRIDES.get(inst["name"], {})
-        return bool(ov.get("loop", LOOP_KEYWORD in inst["name"].lower()))
+        return bool(ov.get("loop", any(k in inst["name"].lower() for k in LOOP_KEYWORDS)))
 
     # 連続する同じクリップを (クリップ, 回数) のグループにまとめ、
     # ループ可能なグループへ順繰りに +1 して均等に尺を伸ばす
@@ -351,7 +351,8 @@ def build_nla(scene, arm, clips, fps):
                     break
         if obs_kind:
             pos = Matrix.Rotation(acc_yaw, 3, "Z") @ info["mid"] + acc_loc
-            obstacles.append((obs_kind, Vector((pos.x, pos.y, 0.0)), acc_yaw))
+            obstacles.append((obs_kind, Vector((pos.x, pos.y, 0.0)), acc_yaw,
+                              int(strip_start), int(strip_end)))
 
         cursor = strip_end
         prev = info
@@ -410,7 +411,7 @@ def build_environment(obstacles):
         "bar":  (0.15, 1.6, 1.1),  # スライディング用バー
         "wall": (0.4, 3.0, 3.0),   # 壁登り用の壁
     }
-    for i, (kind, pos, yaw) in enumerate(obstacles):
+    for i, (kind, pos, yaw, *_f) in enumerate(obstacles):
         sx, sy, sz = sizes.get(kind, sizes["box"])
         bpy.ops.mesh.primitive_cube_add(location=(pos.x, pos.y, sz / 2))
         cube = bpy.context.object
