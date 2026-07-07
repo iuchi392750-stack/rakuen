@@ -33,50 +33,68 @@
 
 ---
 
-## 3. Pixverse 動画プロンプト
+## 3. Pixverse 動画プロンプト（15秒×2クリップ、計30秒）
 
-共通設定: 16:9 / アニメ調（Makoto Shinkai風の深い藍紫の夜空、紫ピンクに輝く天の川、濡れた路面の反射）/ 各15秒。
-画像参照: キャラ三面図2枚＋メイン背景を image reference / character reference に指定。
+Pixverseは1クリップ最大15秒のため、**独立した2本のクリップ**として生成し、編集で連結する。
 
-### Part 1（0:00–0:15）「過去 — 喪失と7年」
+共通設定:
+- 尺: **各15秒（Duration: 15s）**
+- アスペクト比: 16:9
+- スタイル: アニメ調（Makoto Shinkai風の深い藍紫の夜空、紫ピンクに輝く天の川、濡れた路面の反射）
 
-**開始フレーム参照**: メイン背景（過去と今が同居する橋の絵）＋二人の三面図（過去側の制服姿）
+---
 
-```
-アニメ映画風、16:9。七夕祭りの夕暮れの川辺の橋。笹飾りと色とりどりの短冊が風に揺れ、提灯が温かく灯る。学ラン姿の16歳の少年と、セーラー夏服の長い黒髪の少女が橋の上で笑い合い、小指を絡めて約束を交わす（0-5秒）。画面が雨に滲み、色彩が消えていく。傘も差さず立ち尽くす少年、手から滑り落ちる携帯電話、遠ざかる救急車の光——「彼女は死んだ」という報せ（5-9秒）。時間経過のモンタージュ：同じ橋、移ろう季節、成長していく彼のシルエット。空は夕暮れから深い星夜へと変わり、紫ピンクの天の川が空に架かる（9-13秒）。ラストカット：23歳になった彼（水色のシャツ、ネイビーのパンツ）が夜の橋の中央にひとり立ち、天の川を見上げる。一筋の流れ星が空を切る。カメラは彼の背中越しにゆっくりと引き、静止（13-15秒）。切なく静かな余韻。
-```
+### クリップ①（動画の0:00–0:15）「過去 — 喪失と7年」
 
-英語版:
+**画像参照（開始フレーム）**: メイン背景（過去と今が同居する橋の絵）
+**キャラクター参照**: 彼の三面図・彼女の三面図（過去側の制服姿）
 
-```
-Anime film style, 16:9. A riverside bridge at Tanabata festival dusk: bamboo branches with colorful tanzaku wishes, warm paper lanterns. A 16-year-old boy in a black gakuran and a girl with long dark hair in a white sailor summer uniform laugh together on the bridge and make a pinky promise (0-5s). The frame blurs into rain, colors draining away — the boy stands frozen in the downpour, a phone slipping from his hand, distant ambulance lights: the news that she died (5-9s). Time-lapse montage over the same bridge: seasons change, his silhouette grows older, the sky shifts from dusk into a deep starry night as the purple-pink Milky Way arcs overhead (9-13s). Final shot: now 23, in a light blue open shirt and navy trousers, he stands alone at the center of the bridge looking up at the Milky Way; a single shooting star cuts the sky. Camera slowly pulls back over his shoulder and holds still (13-15s). Quiet, aching stillness.
-```
-
-**重要**: Part 1の最終フレーム（橋の中央に立つ彼の後ろ姿＋天の川＋最初の流れ星）で必ず静止して終わること。この最終フレームがPart 2の開始参照になる。
-
-### Part 2（0:15–0:30）「現在 — 流星群の再会」
-
-**開始フレーム参照**: **Part 1の最終フレームを first frame / image reference に指定**（前パート最終フレーム参照）。＋彼女の三面図（現在側・ラベンダーのドレス）
+プロンプト（日本語）:
 
 ```
-前クリップの最終フレームから継続。アニメ映画風、16:9。天の川の下、橋の中央に立つ彼の背中。空一面に流星群が降り始め、数十の流れ星が紫ピンクの天の川を切り裂き、川面と濡れた路面にきらめきが反射する（15-19秒）。彼がふと顔を上げると、橋の向こう端に淡い光をまとった人影——星の髪飾りを付け、透けるラベンダーのドレスを着た長い黒髪の彼女。死んだはずの少女が、そこに立っている（19-22秒）。彼女が静かに歩み寄る。ドレスと髪が夜風になびき、流星の光が彼女を包む。彼の目に涙があふれ、信じられないように一歩、また一歩と近づく（22-26秒）。二人は向かい合い、彼女が涙ながらに微笑む——「ただいま」。彼が彼女の手を取る。カメラは大きく引き、天の川のアーチと降り注ぐ無数の流星の下、川面に映る二人のシルエットで終わる（26-30秒）。奇跡的で美しい大団円。
+アニメ映画風、16:9。七夕祭りの夕暮れの川辺の橋。笹飾りと色とりどりの短冊が風に揺れ、提灯が温かく灯る。学ラン姿の16歳の少年と、セーラー夏服の長い黒髪の少女が橋の上で笑い合い、小指を絡めて約束を交わす（0-5秒）。画面が雨に滲み、色彩が消えていく。傘も差さず立ち尽くす少年、手から滑り落ちる携帯電話、遠ざかる救急車の光——「彼女は死んだ」という報せ（5-9秒）。時間経過のモンタージュ：同じ橋、移ろう季節、成長していく彼のシルエット。空は夕暮れから深い星夜へと変わり、紫ピンクの天の川が空に架かる（9-13秒）。ラストカット：23歳になった彼（水色のシャツ、ネイビーのパンツ）が夜の橋の中央にひとり立ち、天の川を見上げる。一筋の流れ星が空を切る。カメラは彼の背中越しにゆっくりと引き、完全に静止した構図で終わる（13-15秒）。切なく静かな余韻。
 ```
 
-英語版:
+プロンプト（英語）:
 
 ```
-Continue from the final frame of the previous clip. Anime film style, 16:9. His back at the center of the bridge under the Milky Way. A meteor shower erupts across the whole sky — dozens of shooting stars slicing through the purple-pink galaxy, their light shimmering on the river and wet pavement (15-19s). He looks up, then notices a figure at the far end of the bridge, wrapped in faint light: a young woman with very long dark hair, star hair ornaments, and a sheer lavender layered dress. The girl who was supposed to be dead is standing there (19-22s). She walks slowly toward him, dress and hair drifting in the night wind, meteor light haloing her. Tears well in his eyes as he steps forward in disbelief, one step, then another (22-26s). They stop face to face; she smiles through tears — "I'm home." He takes her hand. The camera pulls far back: beneath the arch of the Milky Way and countless falling stars, their two silhouettes reflect on the river (26-30s). A miraculous, beautiful reunion finale.
+Anime film style, 16:9. A riverside bridge at Tanabata festival dusk: bamboo branches with colorful tanzaku wishes, warm paper lanterns. A 16-year-old boy in a black gakuran and a girl with long dark hair in a white sailor summer uniform laugh together on the bridge and make a pinky promise (0-5s). The frame blurs into rain, colors draining away — the boy stands frozen in the downpour, a phone slipping from his hand, distant ambulance lights: the news that she died (5-9s). Time-lapse montage over the same bridge: seasons change, his silhouette grows older, the sky shifts from dusk into a deep starry night as the purple-pink Milky Way arcs overhead (9-13s). Final shot: now 23, in a light blue open shirt and navy trousers, he stands alone at the center of the bridge looking up at the Milky Way; a single shooting star cuts the sky. Camera slowly pulls back over his shoulder and ends on a completely still, stable composition (13-15s). Quiet, aching stillness.
 ```
 
-### ネガティブプロンプト（両パート共通）
+**このクリップの終わり方が重要**: 最終フレームは「橋の中央に立つ彼の後ろ姿＋天の川＋一筋の流れ星」の静止構図で終わらせること。この絵がクリップ②の開始フレームになる。
+
+---
+
+### クリップ②（動画の0:15–0:30）「現在 — 流星群の再会」 ※クリップ単体では0:00–0:15
+
+**最終フレーム参照（必須）**: **クリップ①の最終フレームを書き出し（スクリーンショットまたはPixverseの「Extend/Last frame」機能）、このクリップの開始フレーム（First Frame / Image reference）に指定する。** これにより橋・空・彼の立ち位置がクリップ①から途切れずに継続する。
+**キャラクター参照**: 彼女の三面図（現在側・ラベンダーのドレス）
+
+プロンプト（日本語・秒数はクリップ②内の時間）:
+
+```
+開始フレーム（前クリップの最終フレーム：天の川の下、橋の中央に立つ彼の後ろ姿）から連続して動き出す。アニメ映画風、16:9。空一面に流星群が降り始め、数十の流れ星が紫ピンクの天の川を切り裂き、川面と濡れた路面にきらめきが反射する（0-4秒）。彼がふと顔を上げると、橋の向こう端に淡い光をまとった人影——星の髪飾りを付け、透けるラベンダーのドレスを着た長い黒髪の彼女。死んだはずの少女が、そこに立っている（4-7秒）。彼女が静かに歩み寄る。ドレスと髪が夜風になびき、流星の光が彼女を包む。彼の目に涙があふれ、信じられないように一歩、また一歩と近づく（7-11秒）。二人は向かい合い、彼女が涙ながらに微笑む——「ただいま」。彼が彼女の手を取る。カメラは大きく引き、天の川のアーチと降り注ぐ無数の流星の下、川面に映る二人のシルエットで終わる（11-15秒）。奇跡的で美しい大団円。
+```
+
+プロンプト（英語）:
+
+```
+Start from the given first frame (the final frame of the previous clip: his back at the center of the bridge under the Milky Way) and continue the motion seamlessly. Anime film style, 16:9. A meteor shower erupts across the whole sky — dozens of shooting stars slicing through the purple-pink galaxy, their light shimmering on the river and wet pavement (0-4s). He looks up, then notices a figure at the far end of the bridge, wrapped in faint light: a young woman with very long dark hair, star hair ornaments, and a sheer lavender layered dress. The girl who was supposed to be dead is standing there (4-7s). She walks slowly toward him, dress and hair drifting in the night wind, meteor light haloing her. Tears well in his eyes as he steps forward in disbelief, one step, then another (7-11s). They stop face to face; she smiles through tears — "I'm home." He takes her hand. The camera pulls far back: beneath the arch of the Milky Way and countless falling stars, their two silhouettes reflect on the river (11-15s). A miraculous, beautiful reunion finale.
+```
+
+---
+
+### ネガティブプロンプト（両クリップ共通）
 
 ```
 low quality, blurry, distorted faces, extra fingers, text, watermark, photorealistic, 3DCG, horror, gore, character design change, different hairstyle, different outfit
 ```
 
-### Pixverse運用メモ
+### Pixverse運用手順まとめ
 
-- Pixverseの1クリップ上限が15秒未満のプラン/モデルの場合は、各パートを 8秒＋7秒（または5秒×3）に分割し、必ず「前クリップの最終フレーム→次クリップの開始フレーム」で連結する（Part内も同じ最終フレーム参照方式）。
-- キャラの同一性維持のため、三面図の「現在」側を切り出してcharacter referenceに使うと安定する。
-- Part 1→Part 2の橋・空・彼の立ち位置が一致していることを書き出し前に確認。
-- BGM想定: 静かなピアノ（Part 1）→ストリングスが広がる（Part 2後半）。
+1. クリップ①を15秒で生成（開始フレーム＝メイン背景、キャラ参照＝三面図の過去側）。
+2. クリップ①の**最終フレームを取得**（Extend機能があればそのまま継続生成でも可。なければ最終フレームを静止画で書き出す）。
+3. クリップ②を15秒で生成（**First Frame＝クリップ①最終フレーム**、キャラ参照＝彼女の三面図・現在側）。
+4. ①＋②を編集ソフトで連結して30秒に。つなぎ目は同一フレームなのでカットのまま繋いでよい。
+5. 書き出し前に橋・空・彼の立ち位置が①→②で一致していることを確認。
+6. BGM想定: 静かなピアノ（クリップ①）→ストリングスが広がる（クリップ②後半）。
