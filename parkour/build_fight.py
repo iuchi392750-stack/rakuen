@@ -176,6 +176,45 @@ BODY_HIT = pose(GUARD, **{"torso": (0, 0.55, 0.83), "head": (0, 0.50, 0.85),
                           "upperarm.L": (0.50, 0.30, -0.80), "forearm.L": (0.20, 0.60, 0.50),
                           "upperarm.R": (-0.50, 0.30, -0.80), "forearm.R": (-0.20, 0.60, 0.50)})
 
+# --- 格闘ゲーム用の派手なポーズ ---
+UPPERCUT_R = pose(GUARD, **{"upperarm.R": (-0.10, 0.40, 0.91), "forearm.R": (-0.05, 0.30, 0.95),
+                            "torso": (0, -0.10, 0.99), "head": (0, -0.05, 1.0)})
+SPIN_KICK_R = pose(GUARD, **{"thigh.R": (-0.15, 0.75, 0.64), "shin.R": (-0.10, 0.99, 0.05),
+                             "torso": (0.15, -0.30, 0.94), "upperarm.L": (0.80, 0.20, -0.10),
+                             "upperarm.R": (-0.85, -0.20, 0.15)})
+SWEEP_L = pose(GUARD, **{"thigh.L": (0.15, 0.92, -0.35), "shin.L": (0.05, 0.99, -0.05),
+                         "thigh.R": (-0.10, 0.20, -0.97), "shin.R": (0.0, -0.65, -0.75),
+                         "torso": (0, 0.60, 0.80), "head": (0, 0.55, 0.83),
+                         "upperarm.L": (0.70, 0.40, -0.50), "upperarm.R": (-0.70, 0.20, -0.60)})
+JUMP_TUCK = pose(GUARD, **{"thigh.L": (0.10, 0.80, -0.58), "shin.L": (0.05, -0.75, -0.65),
+                           "thigh.R": (-0.10, 0.80, -0.58), "shin.R": (-0.05, -0.75, -0.65),
+                           "torso": (0, 0.30, 0.95)})
+LAUNCHED = pose(GUARD, **{"torso": (0, -0.60, 0.80), "head": (0, -0.70, 0.70),
+                          "upperarm.L": (0.85, -0.30, 0.40), "forearm.L": (0.60, -0.40, 0.60),
+                          "upperarm.R": (-0.85, -0.30, 0.40), "forearm.R": (-0.60, -0.40, 0.60),
+                          "thigh.L": (0.10, 0.70, -0.70), "shin.L": (0.05, -0.30, -0.95),
+                          "thigh.R": (-0.10, 0.55, -0.83), "shin.R": (-0.05, -0.40, -0.91)})
+STAGGER = pose(GUARD, **{"torso": (0, -0.50, 0.86), "head": (0, -0.45, 0.89),
+                         "upperarm.L": (0.90, 0.10, 0.20), "upperarm.R": (-0.90, 0.10, 0.20),
+                         "thigh.L": (0.10, 0.50, -0.86)})
+BACKFIST_R = pose(GUARD, **{"upperarm.R": (-0.70, 0.70, 0.10), "forearm.R": (-0.60, 0.79, 0.05),
+                            "torso": (0.20, 0.15, 0.97),
+                            "upperarm.L": (0.60, -0.40, -0.60)})
+KNOCKED_DOWN = {
+    "torso": (0, -0.98, 0.15), "head": (0, -1.0, 0.08),
+    "upperarm.L": (0.85, -0.35, 0.10), "forearm.L": (0.70, -0.55, 0.15),
+    "upperarm.R": (-0.85, -0.35, 0.10), "forearm.R": (-0.70, -0.55, 0.15),
+    "thigh.L": (0.12, 0.92, -0.30), "shin.L": (0.05, 0.98, -0.10),
+    "thigh.R": (-0.12, 0.85, -0.45), "shin.R": (-0.05, 0.95, -0.20),
+}
+VICTORY = {
+    "torso": (0, 0.02, 1.0), "head": (0, 0.05, 1.0),
+    "upperarm.L": (0.30, 0.05, -0.95), "forearm.L": (0.20, 0.10, -0.97),
+    "upperarm.R": (-0.30, 0.05, -0.95), "forearm.R": (-0.20, 0.10, -0.97),
+    "thigh.L": (0.10, 0.05, -0.99), "shin.L": (0.05, -0.02, -1.0),
+    "thigh.R": (-0.10, 0.05, -0.99), "shin.R": (-0.05, -0.02, -1.0),
+}
+
 # 親→子の順に向きを決める必要がある
 BONE_ORDER = ["torso", "head",
               "upperarm.L", "forearm.L", "upperarm.R", "forearm.R",
@@ -200,8 +239,8 @@ def aim_bone(arm, pb, target, frame):
     pb.keyframe_insert("rotation_quaternion", frame=frame)
 
 
-def key_pose(arm, frame, p, loc=None, yaw=None, crouch=0.0):
-    """1 フレームにポーズ・立ち位置・向き・沈み込みをまとめてキーフレーム"""
+def key_pose(arm, frame, p, loc=None, yaw=None, crouch=0.0, z=0.0):
+    """1 フレームにポーズ・立ち位置・向き・沈み込み・ジャンプ高さをまとめてキーフレーム"""
     hips = arm.pose.bones["hips"]
     hips.location = (0, 0, -crouch)
     hips.keyframe_insert("location", frame=frame)
@@ -209,7 +248,7 @@ def key_pose(arm, frame, p, loc=None, yaw=None, crouch=0.0):
         if bname in p:
             aim_bone(arm, arm.pose.bones[bname], p[bname], frame)
     if loc is not None:
-        arm.location = (loc[0], loc[1], 0)
+        arm.location = (loc[0], loc[1], z)
         arm.keyframe_insert("location", frame=frame)
     if yaw is not None:
         arm.rotation_euler = (0, 0, D(yaw))
@@ -238,47 +277,69 @@ def sec(t):
 
 
 def choreograph(red, blue):
-    """15 秒のスパーリング。R=赤 B=青。向かい合って時計回りに回りながら攻防"""
+    """15 秒の格闘ゲーム風バトル。R=赤 B=青。
+    ダッシュ・スピンキック・アッパーで打ち上げ・ジャンプ回避・
+    スピニングバックフィストでノックダウンして決着、という流れ。"""
+    spin = {"r": 0.0, "b": 0.0}
+
     def place(t, ang_deg, dist=1.9, crouch_r=0.05, crouch_b=0.05,
-              pr=GUARD, pb=GUARD, dr=0.0, db=0.0):
-        """ang_deg: 2 人の対峙軸の回転。dr/db: 各自の前後ステップ(+で前へ)"""
+              pr=GUARD, pb=GUARD, dr=0.0, db=0.0, zr=0.0, zb=0.0,
+              spin_r=0.0, spin_b=0.0):
+        """ang_deg: 対峙軸の回転。dr/db: 前後ステップ(+で相手へ)。
+        zr/zb: ジャンプ高さ。spin_r/spin_b: このキーまでに回る追加回転(度)"""
+        spin["r"] += spin_r
+        spin["b"] += spin_b
         a = D(ang_deg)
         axis = Vector((math.sin(a), math.cos(a), 0))
         c = Vector((0, 0, 0))
         r_pos = c - axis * (dist / 2 - dr)
         b_pos = c + axis * (dist / 2 - db)
         key_pose(red, sec(t), pr, loc=(r_pos.x, r_pos.y),
-                 yaw=-ang_deg, crouch=crouch_r)
+                 yaw=-ang_deg + spin["r"], crouch=crouch_r, z=zr)
         key_pose(blue, sec(t), pb, loc=(b_pos.x, b_pos.y),
-                 yaw=180 - ang_deg, crouch=crouch_b)
+                 yaw=180 - ang_deg + spin["b"], crouch=crouch_b, z=zb)
 
-    # --- タイムライン(秒, 対峙角度, 各ポーズ) ---
-    place(0.0, 0, pr=GUARD, pb=GUARD)
-    place(1.0, 10)                                   # 様子見で回り込み
-    place(2.0, 20)
-    place(2.6, 22, pr=JAB_L, dr=0.25)                # 赤: 左ジャブ
-    place(2.9, 22, pb=LEAN_BACK, pr=JAB_L, dr=0.25)  # 青: 仰け反ってかわす
-    place(3.3, 24, pr=GUARD, pb=GUARD)
-    place(4.0, 28, pb=JAB_R, db=0.3)                 # 青: 右の反撃
-    place(4.3, 28, pr=BLOCK, pb=JAB_R, db=0.3)       # 赤: ブロック
-    place(4.8, 30, pr=GUARD, pb=GUARD)
-    place(5.6, 24)                                   # 距離を取り直す
-    place(6.2, 18, pr=JAB_R, dr=0.3)                 # 赤: 右ストレート
-    place(6.5, 18, pb=DUCK, pr=JAB_R, dr=0.3, crouch_b=0.28)  # 青: ダッキング
-    place(6.9, 16, pb=pose(BODY_HIT), db=0.35, crouch_b=0.12) # 青: ボディ打ち
-    place(7.2, 16, pr=BODY_HIT)                      # 赤: 打たれて怯む
-    place(7.8, 12, pr=GUARD, pb=GUARD, dist=2.3)     # 離れる
-    place(8.8, 0, dist=2.4)                          # 逆回りで仕切り直し
-    place(9.8, -12, dist=2.2)
-    place(10.6, -18, pb=KICK_R, db=0.3, dist=2.0)    # 青: ミドルキック
-    place(11.0, -18, pr=pose(BLOCK, torso=(0, 0.30, 0.95)), pb=KICK_R, db=0.3)
-    place(11.5, -20, pr=GUARD, pb=GUARD, dist=2.1)
-    place(12.3, -28, pr=JAB_L, dr=0.35)              # 赤: 踏み込んで左
-    place(12.6, -28, pb=LEAN_BACK, pr=JAB_L, dr=0.35)
-    place(13.0, -30, pr=JAB_R, dr=0.45)              # 赤: 返しの右
-    place(13.3, -30, pb=pose(BODY_HIT, head=(0.20, 0.55, 0.80)), pr=JAB_R, dr=0.45)
-    place(13.8, -32, pb=pose(GUARD, torso=(0, 0.35, 0.94)), dist=2.4)  # 青: 下がる
-    place(14.8, -38, pr=GUARD, pb=GUARD, dist=2.2)   # ガードに戻して終わり
+    # --- タイムライン ---
+    # 0-1.5s: 対峙、じりじり回る
+    place(0.0, 0, dist=2.6)
+    place(1.4, 10, dist=2.4)
+    # 1.5-2.6s: 赤がダッシュしてワンツー、青は2回ブロック
+    place(1.8, 12, dist=1.8, dr=0.2, pr=JAB_L, pb=BLOCK)
+    place(2.1, 12, dist=1.8, dr=0.3, pr=JAB_R, pb=BLOCK, crouch_b=0.12)
+    place(2.6, 14, dist=1.9, pr=GUARD, pb=GUARD)
+    # 2.6-3.6s: 青のスピンキック → 赤が仰け反って吹き飛ぶ
+    place(3.0, 14, dist=1.7, pb=SPIN_KICK_R, db=0.35, spin_b=-360, crouch_b=0.10)
+    place(3.3, 14, dist=1.7, pb=SPIN_KICK_R, db=0.3, pr=STAGGER, dr=-0.55, crouch_r=0.15)
+    place(3.9, 12, dist=2.6, pr=pose(GUARD, torso=(0, -0.20, 0.98)), pb=GUARD)
+    # 3.9-5.2s: 仕切り直しの回り込み
+    place(5.0, -4, dist=2.4)
+    # 5.2-6.6s: 赤の足払い → 青がジャンプでかわす
+    place(5.6, -8, dist=1.7, dr=0.3, pr=SWEEP_L, crouch_r=0.42, spin_r=360)
+    place(5.95, -8, dist=1.7, dr=0.3, pr=SWEEP_L, crouch_r=0.45, pb=JUMP_TUCK, zb=0.75, crouch_b=0.1)
+    place(6.3, -8, dist=1.8, pr=pose(GUARD, torso=(0, 0.4, 0.92)), crouch_r=0.25, pb=GUARD, zb=0.0)
+    # 6.6-8.2s: 赤のアッパーカットで青が打ち上がる → 崩れて着地
+    place(6.9, -10, dist=1.5, dr=0.35, pr=pose(GUARD, torso=(0, 0.5, 0.87)), crouch_r=0.3)
+    place(7.15, -10, dist=1.5, dr=0.4, pr=UPPERCUT_R, crouch_r=0.0)
+    place(7.45, -10, dist=1.6, pr=UPPERCUT_R, pb=LAUNCHED, db=-0.45, zb=0.9, crouch_b=0.1)
+    place(7.9, -10, dist=2.2, pr=GUARD, pb=pose(DUCK, torso=(0, 0.65, 0.76)), db=-0.5, zb=0.0, crouch_b=0.4)
+    # 8.2-9.6s: 青がゆっくり立ち上がって構え直す
+    place(9.0, -12, dist=2.5, pb=pose(GUARD, torso=(0, 0.3, 0.95)), crouch_b=0.2)
+    place(9.6, -14, dist=2.4)
+    # 9.6-11.2s: 青のジャンプスピンキック → 赤は重いブロックでスライド後退
+    place(10.2, -16, dist=1.9, db=0.3, pb=JUMP_TUCK, zb=0.5, spin_b=360, crouch_b=0.05)
+    place(10.5, -16, dist=1.7, db=0.4, pb=SPIN_KICK_R, zb=0.35, pr=BLOCK)
+    place(10.9, -16, dist=2.0, pb=GUARD, zb=0.0, pr=BLOCK, dr=-0.5, crouch_r=0.18)
+    place(11.4, -18, dist=2.2, pr=GUARD)
+    # 11.4-12.6s: 赤ジャブ → 青ダック → 青ボディ → 赤よろける
+    place(11.8, -20, dist=1.6, dr=0.3, pr=JAB_L)
+    place(12.05, -20, dist=1.6, dr=0.3, pb=DUCK, crouch_b=0.3)
+    place(12.3, -20, dist=1.5, pb=BODY_HIT, db=0.35, crouch_b=0.15, pr=STAGGER, dr=-0.2)
+    # 12.6-14.0s: 赤のスピニングバックフィストが直撃 → 青ノックダウン
+    place(13.0, -22, dist=1.6, dr=0.35, pr=BACKFIST_R, spin_r=360, pb=pose(GUARD, torso=(0, -0.15, 0.99)))
+    place(13.35, -22, dist=1.9, pr=BACKFIST_R, pb=LAUNCHED, db=-0.8, zb=0.55)
+    place(13.9, -22, dist=2.8, pr=pose(GUARD, torso=(0, 0.2, 0.98)), pb=KNOCKED_DOWN, db=-1.0, zb=0.0, crouch_b=0.82)
+    # 14.0-15s: 赤の勝利ポーズ、青はダウンしたまま
+    place(14.6, -22, dist=2.8, pr=VICTORY, pb=KNOCKED_DOWN, db=-1.0, crouch_b=0.84)
 
     add_bounce(red)
     add_bounce(blue)
@@ -324,30 +385,56 @@ def build_environment():
         bg.inputs[1].default_value = 1.0
 
 
+# 格闘ゲーム風のカット割り: (開始秒, 終了秒, カメラ始点, カメラ終点, 注視点始, 注視点終)
+# 各ショット内はゆっくり押し込み(ドリーイン)、ショット間はハードカット
+CAMERA_SHOTS = [
+    (0.0, 2.6, (5.6, 0.8, 1.60), (5.0, 0.6, 1.55), (0, 0, 1.15), (0, 0, 1.20)),      # ワイド
+    (2.6, 5.2, (-4.8, 1.6, 1.30), (-4.2, 1.2, 1.35), (0, 0.2, 1.20), (0, 0, 1.15)),  # 逆サイド
+    (5.2, 8.2, (3.9, -2.0, 0.72), (3.3, -1.3, 0.85), (0, 0, 1.25), (0, 0.2, 1.35)),  # ローアングル
+    (8.2, 11.4, (3.0, 2.8, 1.55), (3.4, 2.1, 1.45), (0, 0.9, 1.30), (0, 0.3, 1.25)), # 青サイド寄り
+    (11.4, 13.6, (-5.2, -1.2, 1.95), (-4.4, -0.7, 1.70), (0, 0, 1.10), (0, 0, 1.15)),# 俯瞰ぎみワイド
+    (13.6, 15.1, (4.4, -2.6, 0.68), (3.6, -2.1, 0.80), (0, -0.5, 1.20), (0, -0.6, 1.25)),  # 勝者の見得
+]
+
+
 def build_camera(scene):
     target = bpy.data.objects.new("CamTarget", None)
-    target.location = (0, 0, 1.15)
     scene.collection.objects.link(target)
 
     cam_data = bpy.data.cameras.new("FightCam")
     cam_data.lens = 45
     cam = bpy.data.objects.new("FightCam", cam_data)
     scene.collection.objects.link(cam)
-    cam.location = (5.4, 0.6, 1.55)  # 対峙軸に対して横から(2 人が左右に見える)
     con = cam.constraints.new("TRACK_TO")
     con.target = target
     con.track_axis = "TRACK_NEGATIVE_Z"
     con.up_axis = "UP_Y"
     scene.camera = cam
 
-    # ごく僅かな手持ち揺れ
-    cam.keyframe_insert("location", frame=1)
-    act = cam.animation_data.action
-    for fc in act.fcurves:
-        mod = fc.modifiers.new("NOISE")
-        mod.scale = 40.0
-        mod.strength = 0.05
-        mod.phase = fc.array_index * 23.0
+    for t0, t1, p0, p1, l0, l1 in CAMERA_SHOTS:
+        f0, f1 = sec(t0), sec(t1) - 1
+        cam.location = p0
+        cam.keyframe_insert("location", frame=f0)
+        target.location = l0
+        target.keyframe_insert("location", frame=f0)
+        cam.location = p1
+        cam.keyframe_insert("location", frame=f1)
+        target.location = l1
+        target.keyframe_insert("location", frame=f1)
+
+    # ショット内は LINEAR のドリーイン、ショット末尾は CONSTANT にして
+    # 次のショットへハードカットさせる
+    cut_frames = {sec(t1) - 1 for _, t1, *_ in CAMERA_SHOTS}
+    for obj in (cam, target):
+        for fc in obj.animation_data.action.fcurves:
+            for kp in fc.keyframe_points:
+                kp.interpolation = ("CONSTANT" if round(kp.co.x) in cut_frames
+                                    else "LINEAR")
+            # 手持ちの微揺れ
+            mod = fc.modifiers.new("NOISE")
+            mod.scale = 35.0
+            mod.strength = 0.035 if obj is cam else 0.015
+            mod.phase = fc.array_index * 23.0 + (100 if obj is target else 0)
 
 
 def setup_render(scene, out_dir):
