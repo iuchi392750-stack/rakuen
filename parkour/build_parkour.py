@@ -384,6 +384,17 @@ def make_material(name, color):
     return mat
 
 
+def paint_character(arm):
+    """キャラクターを青一色にする。肌色のマネキンのままだと動画生成サービスの
+    NSFW フィルターに誤検知されるため、参照動画では明確に人形と分かる色にする"""
+    mat = make_material("pk_character", (0.05, 0.25, 0.85))
+    for obj in arm.children_recursive:
+        if obj.type == "MESH":
+            obj.data.materials.clear()
+            obj.data.materials.append(mat)
+            obj.color = (0.05, 0.25, 0.85, 1.0)
+
+
 def build_environment(obstacles):
     ground_mat = make_material("pk_ground", (0.18, 0.18, 0.19))
     obs_mat = make_material("pk_obstacle", (0.55, 0.30, 0.12))
@@ -392,6 +403,7 @@ def build_environment(obstacles):
     ground = bpy.context.object
     ground.name = "Ground"
     ground.data.materials.append(ground_mat)
+    ground.color = (0.18, 0.18, 0.19, 1.0)
 
     sizes = {
         "box":  (0.6, 1.4, 1.0),   # 跳び越え用ブロック
@@ -406,6 +418,7 @@ def build_environment(obstacles):
         cube.scale = (sx / 2, sy / 2, sz / 2)
         cube.rotation_euler = (0, 0, yaw)
         cube.data.materials.append(obs_mat)
+        cube.color = (0.75, 0.55, 0.15, 1.0)
         print(f"障害物 {kind} を配置: ({pos.x:.1f}, {pos.y:.1f}) — 位置は必要に応じて手で微調整してください")
 
     # ライティング
@@ -475,6 +488,9 @@ def setup_render(scene, out_dir, fps, engine="eevee"):
 
     if engine == "workbench":
         r.engine = "BLENDER_WORKBENCH"
+        # テクスチャ(肌色)ではなくオブジェクトに設定した色で塗る
+        scene.display.shading.color_type = "OBJECT"
+        scene.display.render_aa = "8"
     elif engine == "cycles":
         r.engine = "CYCLES"
         scene.cycles.samples = 32
@@ -501,6 +517,7 @@ def main():
 
     arm, clips = import_clips(os.path.abspath(args.anims))
     obstacles = build_nla(scene, arm, clips, args.fps)
+    paint_character(arm)
     build_environment(obstacles)
     build_camera(scene, arm, args.fps)
     setup_render(scene, out_dir, args.fps, args.engine)
