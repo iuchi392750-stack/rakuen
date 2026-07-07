@@ -1,5 +1,5 @@
 {
-  "top_url": "https://cdn.jsdelivr.net/gh/iuchi392750-stack/rakuen@af553deab944932a3827c062cc44715f02af91ed/parkour/reference/fight_reference.mp4",
-  "bottom_url": "https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260707_111808_56fe4ca2-39ef-4645-b4ae-27ae0c49f68c.mp4",
-  "out_path": "parkour/reference/comparison_street.mp4"
+  "top_url": "https://cdn.jsdelivr.net/gh/iuchi392750-stack/rakuen@a5403d43a2123d060f25aa4eff5a442023120210/parkour/reference/fight_reference_v2.mp4",
+  "bottom_url": "https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260707_120147_08442dc1-c06e-40b5-ae9c-ddbfc6f05e1e.mp4",
+  "out_path": "parkour/reference/comparison_fightgame.mp4"
 }
