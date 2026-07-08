@@ -128,6 +128,19 @@ Blenderプリビズの代わりに、**動画コンテ→Gemini omniで参照動
 12-15秒: カメラがクレーン上昇しながら大きく引き、天の川のアーチと降り注ぐ流星群の下、橋の上で手をつなぐ二人の小さなシルエットと川面の反射で静止して終わる。
 ```
 
+### 生成済み参照動画（Gemini omni / Higgsfield MCP経由・720p・16:9）
+
+Gemini omni（Higgsfield上の `gemini_omni`）は1本最大10秒のため、各パートをカット境界で 9秒＋6秒 に分割して計4本生成。後続クリップは前クリップの動画参照（video_references）で連結済み。
+
+| クリップ | 内容 | URL |
+|---|---|---|
+| Part 1-a（9秒 / CUT01〜03） | 約束→雨の報せ→タイムラプス | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260708_014038_5329d45a-56a9-4a4c-b70e-f8afdc8ce5b2.mp4 |
+| Part 1-b（6秒 / CUT04〜05） | 現在の彼が橋へ→見上げて流れ星、静止 | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260708_014057_8b6face8-5124-4bf6-bd7c-8933620255aa.mp4 |
+| Part 2-a（9秒 / CUT06〜08） | 流星群→振り向くと彼女→歩み寄り（Part 1-b を動画参照） | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260708_014812_523850cf-61e9-44b7-99c1-2d0d999f7c17.mp4 |
+| Part 2-b（6秒 / CUT09〜10） | 手を取る→クレーン上昇の大引きで静止（Part 2-a を動画参照） | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260708_015508_3ec39d1c-bd7b-4203-a6ba-2257a5f58f60.mp4 |
+
+Pixverseでは Part 1-a + 1-b を繋いだものをパート1の参照動画、Part 2-a + 2-b をパート2の参照動画として使用する。
+
 ### Pixverse本番生成での参照の組み合わせ
 
 | クリップ | 参照動画 | 画像参照 | テキスト |
