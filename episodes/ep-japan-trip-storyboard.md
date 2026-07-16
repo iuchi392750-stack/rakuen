@@ -33,6 +33,16 @@
 - 画像：https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_071929_a13fd784-f22d-4351-a936-55888fdc1848.png
 - ジョブID：`a13fd784-f22d-4351-a936-55888fdc1848`
 
+## GPT Image 2版（ご指定モデルでの再生成・16:9・2K・quality medium）
+
+| カット | 画像URL | ジョブID |
+|---|---|---|
+| 1 出発 | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072411_5b745def-fee7-407c-9c73-792804aecde5.png | `5b745def-fee7-407c-9c73-792804aecde5` |
+| 2 飛行 | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072414_a47c6120-9584-4a6b-a04c-16299a3ca4cf.png | `a47c6120-9584-4a6b-a04c-16299a3ca4cf` |
+| 3 涙の再会 | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072418_dca72614-6287-4105-ae1f-a9faf61fac16.png | `dca72614-6287-4105-ae1f-a9faf61fac16` |
+| 4 先を越される | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072422_60533087-acce-4c3c-9dc4-cb6bd4a1475f.png | `60533087-acce-4c3c-9dc4-cb6bd4a1475f` |
+| 5 涙のやれやれ | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072427_0fcde913-ba36-42c4-991c-5d03ccb56383.png | `0fcde913-ba36-42c4-991c-5d03ccb56383` |
+
 ## 参照メディアID（Higgsfieldライブラリ）
 
 | キャラ | media_id |
