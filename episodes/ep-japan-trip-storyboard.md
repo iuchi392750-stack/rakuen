@@ -96,7 +96,13 @@
 | 富士山上空の空 | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_115042_533fb0b1-c5c8-4533-8d2c-803b52434396.png | `533fb0b1-c5c8-4533-8d2c-803b52434396` |
 | 到着ゲート | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_115045_2b3bc336-3491-4016-9e42-e880751553d9.png | `2b3bc336-3491-4016-9e42-e880751553d9` |
 
-## 完成動画（Seedance 2.0・480P・15秒・音声なし）
+## 完成動画v2（Seedance 2.0・480P・15秒・セリフ＋効果音あり／BGMなし）★最終版
+
+- 動画：https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_122114_5bf24e99-191a-43b5-8012-5fb58a402156.mp4
+- ジョブID：`5bf24e99-191a-43b5-8012-5fb58a402156`
+- 音声：日本語セリフ（絵コンテv2準拠）＋環境音・効果音。音楽・BGMは無し（後入れ用）
+
+## 完成動画v1（Seedance 2.0・480P・15秒・完全無音）
 
 - 動画：https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_115145_388962c1-7088-4672-ba4d-fcf170a1d289.mp4
 - ジョブID：`388962c1-7088-4672-ba4d-fcf170a1d289`
