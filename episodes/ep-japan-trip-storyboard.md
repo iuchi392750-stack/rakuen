@@ -65,7 +65,13 @@
 8. ⑧ 0:12.5–0:14 正面：涙をぬぐいやれやれ、さかなくんも真似
 9. ⑨ 0:14–0:15 寄り：家族全員でハグ
 
-## 3×3・9コマ版絵コンテ 最終版（セリフ入り・GPT Image 2）
+## 3×3・9コマ版絵コンテ 最終版v2（⑧のセリフなし・GPT Image 2）
+
+- 画像：https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_100827_d507b2c6-4911-4f64-b5c4-ac5e9d099bdf.png
+- ジョブID：`d507b2c6-4911-4f64-b5c4-ac5e9d099bdf`
+- 変更点：8コマ目（やれやれ）のセリフ行を削除し、カメラ指示のみに。他のコマは変更なし。
+
+## 3×3・9コマ版絵コンテ 旧版（セリフ入り・GPT Image 2）
 
 - 画像：https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_094938_f45dca9a-cc71-4098-9299-abd3b617190a.png
 - ジョブID：`f45dca9a-cc71-4098-9299-abd3b617190a`
