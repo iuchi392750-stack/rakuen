@@ -88,6 +88,22 @@
 8. ⑧ お母さん「やれやれ……泣いて損しちゃった」
 9. ⑨ お父さん「おかえり」
 
+## 背景素材（Nano Banana 2・16:9・2K）
+
+| シーン | 画像URL | ジョブID |
+|---|---|---|
+| 空港出発ロビー | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_115031_4839f748-c08d-4c02-89be-f8b68646e219.png | `4839f748-c08d-4c02-89be-f8b68646e219` |
+| 富士山上空の空 | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_115042_533fb0b1-c5c8-4533-8d2c-803b52434396.png | `533fb0b1-c5c8-4533-8d2c-803b52434396` |
+| 到着ゲート | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_115045_2b3bc336-3491-4016-9e42-e880751553d9.png | `2b3bc336-3491-4016-9e42-e880751553d9` |
+
+## 完成動画（Seedance 2.0・480P・15秒・音声なし）
+
+- 動画：https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_115145_388962c1-7088-4672-ba4d-fcf170a1d289.mp4
+- ジョブID：`388962c1-7088-4672-ba4d-fcf170a1d289`
+- 仕様：16:9（854×480）、15秒、音声・BGMなし（後入れ用）、9カット構成
+- 参照：開始フレーム（カット1）＋絵コンテv2＋ぺんぎんちゃん/お父さん/お母さん三面図＋背景3点
+- 備考：PixVerseはHiggsfieldのカタログに無かったため、絵コンテの想定どおりSeedance系で生成
+
 ## 参照メディアID（Higgsfieldライブラリ）
 
 | キャラ | media_id |
