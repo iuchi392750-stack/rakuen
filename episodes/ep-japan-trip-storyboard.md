@@ -43,6 +43,11 @@
 | 4 先を越される | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072422_60533087-acce-4c3c-9dc4-cb6bd4a1475f.png | `60533087-acce-4c3c-9dc4-cb6bd4a1475f` |
 | 5 涙のやれやれ | https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072427_0fcde913-ba36-42c4-991c-5d03ccb56383.png | `0fcde913-ba36-42c4-991c-5d03ccb56383` |
 
+## 画像版絵コンテシート（A4縦・3:4・GPT Image 2）
+
+- 画像：https://d8j0ntlcm91z4.cloudfront.net/user_38k3HpgLGtIPunR7RsTJbhIIlkv/hf_20260716_072933_ceab679e-62bc-46fa-99e0-0e6735a49da4.png
+- ジョブID：`ceab679e-62bc-46fa-99e0-0e6735a49da4`
+
 ## 参照メディアID（Higgsfieldライブラリ）
 
 | キャラ | media_id |
