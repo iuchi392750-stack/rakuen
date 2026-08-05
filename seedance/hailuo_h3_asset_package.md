@@ -13,11 +13,9 @@
 ```
 C:\新Suno\Hailou\
 ├─ car_sheet.png     ← 三面図(F1マシン 前/側面/背面 × 4カラー)※添付済み画像
-├─ track_bg.png      ← 背景(サーキット・雪山・観客席)※添付済み画像
-├─ bgm_01.mp3        ← BGM 0:00–0:15
-├─ bgm_02.mp3        ← BGM 0:15–0:30
-├─ bgm_03.mp3        ← BGM 0:30–0:45
-└─ bgm_04.mp3        ← BGM 0:45–1:00
+└─ track_bg.png      ← 背景(サーキット・雪山・観客席)※添付済み画像
+
+※ BGM は動画完成後の「後入れ」。生成時にはアップロードしない。
 ```
 
 ---
@@ -28,8 +26,8 @@ C:\新Suno\Hailou\
 2. モデルに **`MiniMax H3`** を選択
 3. **`Omni Reference` を ON**
 4. 素材をアップロード
-   - **Clip 1:** `car_sheet.png` + `track_bg.png` + `bgm_01.mp3`
-   - **Clip 2〜4:** 上記2枚 + 該当BGM + **前クリップの最終フレーム画像**(`last_frame_01.png` 等として保存)
+   - **Clip 1:** `car_sheet.png` + `track_bg.png`
+   - **Clip 2〜4:** 上記2枚 + **前クリップの最終フレーム画像**(`last_frame_01.png` 等として保存)
 5. 下記プロンプトを貼り付け
 6. 尺 **15秒** / 16:9 で生成
 
@@ -54,7 +52,7 @@ C:\新Suno\Hailou\
 画面右のシグナル塔が赤→黄→緑と点灯し、緑の瞬間に全車が一斉にスタートダッシュ。排気の煙と
 横方向のスピード線、路面が高速で手前に流れる。ドット文字のレトロHUD表示。
 
-BGMは @bgm_01 に同期。16:9、15秒。
+16:9、15秒。
 ```
 
 ### Clip 2 — 集団バトル(0:15–0:30)
@@ -68,7 +66,7 @@ BGMは @bgm_01 に同期。16:9、15秒。
 雪山が多重スクロール。スリップストリームのスピード線、タイヤスモークのスプライト、
 トリコロールのマシンが2台を続けざまにオーバーテイク。HUDの順位表示が上がっていく。
 
-BGMは @bgm_02 に同期。16:9、15秒。
+16:9、15秒。
 ```
 
 ### Clip 3 — 首位との一騎打ち(0:30–0:45)
@@ -81,7 +79,7 @@ BGMは @bgm_02 に同期。16:9、15秒。
 ドット絵の火花が飛び散り、陽炎の揺らぎ線、観客席の観衆が旗を振る。雪山の向こうの空が
 夕焼けのオレンジに染まりはじめる。HUDに「FINAL LAP」がドット文字で点滅。
 
-BGMは @bgm_03 に同期。16:9、15秒。
+16:9、15秒。
 ```
 
 ### Clip 4 — 1位でゴール(0:45–1:00)
@@ -95,46 +93,12 @@ BGMは @bgm_03 に同期。16:9、15秒。
 夕焼けの空に花火のスプライトが弾ける。マシンがビクトリースライドを決め、ドット文字の
 リザルト画面「1st PLACE — WINNER!」と金色のドット絵トロフィーが表示される。
 
-BGMは @bgm_04 に同期。16:9、15秒。
+16:9、15秒。
 ```
 
 ---
 
-## 4. BGM の作成(Suno)
-
-### Suno スタイル指定
-
-```
-8-bit chiptune, NES / Famicom soundtrack, upbeat racing game BGM, 160bpm,
-square wave lead, driving triangle bassline, noise-channel percussion,
-tension build in the middle, triumphant victory fanfare at the end, instrumental
-```
-
-**構成の指示:** 60秒。0–15秒はスタート前の緊張感とダッシュ、15–30秒は疾走感、
-30–45秒はテンション上昇、45–60秒は勝利のファンファーレで締める。
-
-### 15秒ごとの分割(ffmpeg / Windows コマンドプロンプト)
-
-Sunoで書き出した `bgm_full.mp3` を `C:\新Suno\Hailou\` に置いてから実行:
-
-```bat
-cd /d C:\新Suno\Hailou
-ffmpeg -i bgm_full.mp3 -ss 0  -t 15 -c copy bgm_01.mp3
-ffmpeg -i bgm_full.mp3 -ss 15 -t 15 -c copy bgm_02.mp3
-ffmpeg -i bgm_full.mp3 -ss 30 -t 15 -c copy bgm_03.mp3
-ffmpeg -i bgm_full.mp3 -ss 45 -t 15 -c copy bgm_04.mp3
-```
-
-一括で分割する場合:
-
-```bat
-ffmpeg -i bgm_full.mp3 -f segment -segment_time 15 -c copy bgm_%%02d.mp3
-```
-(この場合 `bgm_00.mp3` から始まるのでファイル名を 01〜04 にリネームしてください)
-
----
-
-## 5. 最終的な連結
+## 4. 4本の連結
 
 4本を書き出したら、編集ソフトで順に連結して60秒に。
 ffmpeg で連結する場合は `concat.txt` を作成:
@@ -152,14 +116,36 @@ ffmpeg -f concat -safe 0 -i concat.txt -c copy final_60s.mp4
 
 ---
 
+## 5. BGM(後入れ)
+
+動画4本が完成してから Suno で作成し、編集ソフトで乗せる。
+
+### Suno スタイル指定
+
+```
+8-bit chiptune, NES / Famicom soundtrack, upbeat racing game BGM, 160bpm,
+square wave lead, driving triangle bassline, noise-channel percussion,
+tension build in the middle, triumphant victory fanfare at the end, instrumental
+```
+
+**構成:** 60秒。0–15秒はスタートの緊張と加速、15–30秒は疾走感、30–45秒はテンション上昇、
+45–60秒は勝利のファンファーレ。
+
+### 連結済み動画へのBGM合成(ffmpeg)
+
+```bat
+ffmpeg -i final_60s.mp4 -i bgm_full.mp3 -c:v copy -c:a aac -shortest final_60s_bgm.mp4
+```
+
+---
+
 ## 6. チェックリスト
 
 - [ ] `car_sheet.png` / `track_bg.png` を `C:\新Suno\Hailou\` に配置
-- [ ] Suno で60秒のチップチューンBGMを生成 → `bgm_full.mp3`
-- [ ] ffmpeg で `bgm_01`〜`bgm_04.mp3` に分割
 - [ ] preview.hailuoai.video にログイン → MiniMax H3 / Omni Reference ON
 - [ ] Clip 1 生成 → 最終フレームを `last_frame_01.png` で保存
 - [ ] Clip 2 生成 → `last_frame_02.png` 保存
 - [ ] Clip 3 生成 → `last_frame_03.png` 保存
 - [ ] Clip 4 生成(1位でゴール)
-- [ ] 4本を連結して `final_60s.mp4` 完成
+- [ ] 4本を連結して `final_60s.mp4`
+- [ ] Suno で60秒BGMを作成 → ffmpeg で合成して `final_60s_bgm.mp4` 完成
