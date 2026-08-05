@@ -40,7 +40,7 @@ namespace FamicomGP
             var cam = camGo.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = Palette.Sky;
-            cam.fieldOfView = 62f;
+            cam.fieldOfView = 78f;   // wide, so the road fills the frame like the arcade
             cam.nearClipPlane = 0.3f;
             cam.farClipPlane = 2400f;
             camGo.AddComponent<AudioListener>();
@@ -54,6 +54,9 @@ namespace FamicomGP
             player.maxSpeed = 122f;
             player.accel = 36f;
             player.autoDrive = startInDemoMode;
+
+            // the hero car reads bigger than the field, as it did on the cabinet
+            player.transform.GetChild(0).localScale = Vector3.one * 1.3f;
 
             var rivals = new[]
             {

@@ -35,15 +35,18 @@ namespace FamicomGP
             raw.texture = rt;
             raw.raycastTarget = false;
 
+            // The fitter drives the size, so the rect must be centre-anchored rather than
+            // stretched — stretching fights the fitter and crops the picture.
+            var rect = raw.rectTransform;
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(Width, Height);
+
             var fitter = imageGo.AddComponent<AspectRatioFitter>();
             fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
             fitter.aspectRatio = Width / (float)Height;
-
-            var rect = raw.rectTransform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
 
             return rt;
         }
@@ -55,9 +58,19 @@ namespace FamicomGP
     {
         public TrackBuilder track;
         public Racer target;
-        public float trail = 13f;
-        public float lift = 4.6f;
-        public float aheadLook = 34f;
+
+        [Tooltip("How far behind the car the camera sits. Pole Position kept it close.")]
+        public float trail = 8.5f;
+
+        [Tooltip("Camera height. Low is what makes the road fill the screen.")]
+        public float lift = 2.9f;
+
+        [Tooltip("How far up the road the camera aims. Lower puts the horizon higher.")]
+        public float aheadLook = 26f;
+
+        [Tooltip("How much the camera slides sideways with the car. Near zero keeps the " +
+                 "camera on the road and lets the car visibly move across the screen.")]
+        public float lateralFollow = 0.18f;
 
         Vector3 _pos;
         Vector3 _aim;
@@ -72,11 +85,11 @@ namespace FamicomGP
             Vector3 right = TrackBuilder.RightOf(fwd);
 
             Vector3 wantPos = basePos + Vector3.up * lift
-                            + right * (target.lateral * TrackBuilder.RoadHalfWidth * 0.55f);
+                            + right * (target.lateral * TrackBuilder.RoadHalfWidth * lateralFollow);
 
             Vector3 wantAim = track.PointAt(
                 Mathf.Min(track.TotalLength, target.distance + aheadLook),
-                target.lateral * 0.35f) + Vector3.up * 1.9f;
+                target.lateral * lateralFollow) + Vector3.up * 1.1f;
 
             if (!_seeded) { _pos = wantPos; _aim = wantAim; _seeded = true; }
 
