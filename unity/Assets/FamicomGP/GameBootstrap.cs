@@ -22,6 +22,8 @@ namespace FamicomGP
             Application.targetFrameRate = targetFrameRate;
             QualitySettings.vSyncCount = 0;
 
+            ClearScene();
+
             var root = new GameObject("FamicomGP").transform;
 
             // ---------------------------------------------------------------- track
@@ -69,6 +71,21 @@ namespace FamicomGP
             manager.track = track;
             manager.player = player;
             manager.rivals = rivals;
+        }
+
+        /// <summary>Switches off cameras and listeners the scene already had — the stock
+        /// Main Camera otherwise fights ours for the screen and the audio listener.</summary>
+        static void ClearScene()
+        {
+#if UNITY_2023_1_OR_NEWER
+            var cameras = Object.FindObjectsByType<Camera>(FindObjectsSortMode.None);
+            var listeners = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None);
+#else
+            var cameras = Object.FindObjectsOfType<Camera>();
+            var listeners = Object.FindObjectsOfType<AudioListener>();
+#endif
+            foreach (var c in cameras) c.gameObject.SetActive(false);
+            foreach (var l in listeners) l.enabled = false;
         }
 
         static Racer MakeCar(string name, CarArt.Livery livery, Transform parent,
