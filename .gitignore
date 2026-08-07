@@ -1,0 +1,4 @@
+# `npx skills add` でインストールされる third-party スキルの実体。
+# 再取得できるので追跡しない(復元は skills-lock.json から)。
+.agents/
+.claude/skills/
